@@ -248,18 +248,8 @@ SCENARIOS: Tuple[Scenario, ...] = (
     Scenario("probe-same-cell", _probe_same_cell, 2, 4, None),
     Scenario("drop-onto-pickup", _drop_onto_pickup, 2, 4, None),   # fixed v1.48
     Scenario("step-onto-pickup", _step_onto_pickup, 2, 4, None),   # fixed v1.48
-    Scenario(
-        "two-independent-swaps",
-        _two_independent_swaps,
-        4,
-        4,
-        "#56 — found by this file when it grew past two seats. The "
-        "contention pre-pass resolves ONE pair then re-enters the hour "
-        "loop, which bumps the clock, so a second unrelated smash in "
-        "the same hour is stamped an hour later — and the lower seats "
-        "get the earlier hour. Both pairs wreck either way; what seat "
-        "order decides is who loses the hour",
-    ),
+    # Found by this file when it grew past two seats; fixed in v1.48.
+    Scenario("two-independent-swaps", _two_independent_swaps, 4, 4, None),
     Scenario("follow", _follow, 2, 4, _FOLLOW_GAP),
     Scenario("drop-onto-stepaway", _drop_onto_stepaway, 2, 4, _FOLLOW_GAP),
     Scenario("convoy-of-three", _convoy_of_three, 3, 4, _FOLLOW_GAP),

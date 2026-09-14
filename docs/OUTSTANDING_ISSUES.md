@@ -2813,14 +2813,27 @@ with two at all. At four seats it now also pins:
   two head-on swaps and wrecks all four.
 - **convoy-of-three** and **three-way converge** — the step-away and
   contention gaps compounding along a chain and beyond a pair.
-- **two independent swaps** — *new bug, found by this extension.* Two
-  unrelated head-on collisions in the same hour are **serialised into
-  consecutive hours**: the pre-pass resolves one pair, `continue`s, and
-  re-entering the loop bumps `current_hour`. Both pairs wreck either
-  way, so the board looks identical — what seat order decides is **who
-  loses the hour**, and the lower seats keep the earlier one. Only
-  reachable in 3–4 seat games, which is why two-seat testing never saw
-  it.
+- **two independent swaps** — *new bug, found by this extension;*
+  **fixed in v1.48.** Two unrelated head-on collisions in the same hour
+  were **serialised into consecutive hours**: the pre-pass resolved one
+  pair, `continue`d, and re-entering the loop bumped `current_hour`.
+  Both pairs wrecked either way, so the board was right and only the
+  account of the night was wrong — but wrong in a partisan direction,
+  because the lower seats always kept the earlier hour. The per-seat
+  re-stamp downstream cannot repair it: a joint collision frame is
+  owned by nobody and that pass skips ownerless frames. Only reachable
+  in 3–4 seat games, which is why two-seat testing never saw it.
+
+  Both pre-passes now settle **every** independent collision on the
+  hour it happened — the swap pass rescans after each pair, adding the
+  seats that just crossed to `skip_seats` so no one is matched twice;
+  the drop pass simply stops leaving early, its groups being disjoint
+  by target square already. They also no longer pre-empt each other: a
+  swap used to `continue` on the spot, pushing an unrelated contested
+  landing into the next hour, so the caller now runs both and hands the
+  second the seats the first spent. Pinned by
+  `tests/test_contention_all_resolves_on_its_own_hour.py`, including
+  that the rescan grants nobody a second action.
 
 Two invariants guard the net itself. Each scenario must be seen to
 exercise every role, after an inert one briefly "passed": idle seats

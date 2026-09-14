@@ -32,6 +32,7 @@ from typing import (
     List,
     Mapping,
     Optional,
+    Set,
     Tuple,
     TYPE_CHECKING,
 )
@@ -246,15 +247,22 @@ class NightSimulator:
             triggerers = chaff_triggerers_by_hour.get(current_hour, set())
             all_chaff_immune = chaff_this_hour and set(seats) <= triggerers
             if not chaff_this_hour or all_chaff_immune:
+                # v1.48 — both pre-passes run before either can send us
+                # round again, and each reports the seats it spent so the
+                # next one does not act for them twice. A swap used to
+                # ``continue`` on the spot, which pushed any contested
+                # drop on the SAME hour into the next one; contention is
+                # contention, and all of it belongs to this hour.
+                spent_now: Set[str] = set(preempted_now)
+
                 handled_swap = self._maybe_resolve_swap_collision(
                     sess, queue_for, pointers, applied, replay,
                     hour=current_hour,
                     seats=seats,
-                    skip_seats=preempted_now,
+                    skip_seats=spent_now,
                 )
-                if handled_swap:
-                    continue
-                
+                spent_now |= handled_swap
+
                 # v0.9.10 — simultaneous drop collision check. If multiple
                 # harvesters try to drop on the same square this hour, none
                 # land, all become damaged and stay in orbit.
@@ -262,9 +270,10 @@ class NightSimulator:
                     sess, queue_for, pointers, applied, replay,
                     hour=current_hour,
                     seats=seats,
-                    skip_seats=preempted_now,
+                    skip_seats=spent_now,
                 )
-                if handled_simul_drop:
+
+                if handled_swap or handled_simul_drop:
                     continue
 
             # v0.9.17 — hour-start visibility snapshot for live-only drops,
@@ -1394,16 +1403,29 @@ class NightSimulator:
         hour: int = 0,
         seats: Optional[Tuple[str, ...]] = None,
         skip_seats: Optional[AbstractSet[str]] = None,
-    ) -> bool:
-        """Detect & resolve a pass-through swap before the round.
+    ) -> Set[str]:
+        """Detect & resolve pass-through swaps before the round.
+
+        Returns the seats whose slot was spent here (empty if none) —
+        truthy exactly when something was resolved, so callers can
+        still read it as a flag.
 
         v0.9.6 — generalised to walk every (a, b) seat pair in
-        :attr:`GameSession.players` and stop at the first valid swap.
-        A swap is still pair-wise (RULEBOOK §3.6) — only two
-        harvesters cross at a time — but with 3-4 seats two
-        independent pairs can swap on the same hour. The outer round
-        loop calls this again next iteration so the second pair
-        resolves before the regular dispatch fires.
+        :attr:`GameSession.players`. A swap is still pair-wise
+        (RULEBOOK §3.6) — only two harvesters cross at a time — but
+        with 3-4 seats two independent pairs can swap on the same hour.
+
+        v1.48 — and both pairs now resolve HERE, on this hour. This
+        used to stop at the first pair and lean on the outer round loop
+        to catch the second one, which quietly cost the second pair an
+        hour: the loop derives its clock from ``max(applied) + 1``, and
+        the first pair had just bumped ``applied``. Both pairs wrecked
+        either way, so the board was right and only the replay lied —
+        but it lied about WHO, because the pair on the lower seats
+        always got the earlier stamp, and §3.13 gives seat index no say
+        in anything. (The per-seat re-stamp downstream cannot repair
+        it: a joint collision frame is owned by nobody, and that pass
+        skips frames with no owner.)
 
         v1.19 — ``skip_seats`` excludes seats that already spent this
         hour's slot in the pre-hour phase. Their next queued move
@@ -1415,62 +1437,73 @@ class NightSimulator:
 
         seat_list: Tuple[str, ...] = seats if seats is not None else tuple(sess.players)
         spent = set(skip_seats or ())
-        for ai in range(len(seat_list)):
-            for bi in range(ai + 1, len(seat_list)):
-                pa, pb = seat_list[ai], seat_list[bi]
-                if pa in spent or pb in spent:
-                    continue
-                a_move, _ = _next_actionable(queue_for[pa], pointers[pa])
-                b_move, _ = _next_actionable(queue_for[pb], pointers[pb])
-                if not (isinstance(a_move, StepMove) and isinstance(b_move, StepMove)):
-                    continue
-                if applied[pa] >= MAX_MOVES or applied[pb] >= MAX_MOVES:
-                    continue
-                ha = sess.entities.get(a_move.unit)
-                hb = sess.entities.get(b_move.unit)
-                if not (ha and hb and ha.entity_type == "harvester" and hb.entity_type == "harvester"):
-                    continue
-                if ha.x is None or ha.y is None or hb.x is None or hb.y is None:
-                    continue
-                if bool(getattr(ha, "damaged", False)) or bool(getattr(hb, "damaged", False)):
-                    continue
-                ta = (int(a_move.to[0]), int(a_move.to[1]))
-                tb = (int(b_move.to[0]), int(b_move.to[1]))
-                if (ha.x, ha.y) != tb or (hb.x, hb.y) != ta:
-                    continue
-                W, H = sess.width, sess.height
-                if not (0 <= ta[0] < W and 0 <= ta[1] < H and 0 <= tb[0] < W and 0 <= tb[1] < H):
-                    continue
+        resolved: Set[str] = set()
+        # Rescan after each pair: a seat that has just crossed is added
+        # to ``spent``, so it cannot be paired again on the same hour.
+        while True:
+            pair_found = False
+            for ai in range(len(seat_list)):
+                for bi in range(ai + 1, len(seat_list)):
+                    pa, pb = seat_list[ai], seat_list[bi]
+                    if pa in spent or pb in spent:
+                        continue
+                    a_move, _ = _next_actionable(queue_for[pa], pointers[pa])
+                    b_move, _ = _next_actionable(queue_for[pb], pointers[pb])
+                    if not (isinstance(a_move, StepMove) and isinstance(b_move, StepMove)):
+                        continue
+                    if applied[pa] >= MAX_MOVES or applied[pb] >= MAX_MOVES:
+                        continue
+                    ha = sess.entities.get(a_move.unit)
+                    hb = sess.entities.get(b_move.unit)
+                    if not (ha and hb and ha.entity_type == "harvester" and hb.entity_type == "harvester"):
+                        continue
+                    if ha.x is None or ha.y is None or hb.x is None or hb.y is None:
+                        continue
+                    if bool(getattr(ha, "damaged", False)) or bool(getattr(hb, "damaged", False)):
+                        continue
+                    ta = (int(a_move.to[0]), int(a_move.to[1]))
+                    tb = (int(b_move.to[0]), int(b_move.to[1]))
+                    if (ha.x, ha.y) != tb or (hb.x, hb.y) != ta:
+                        continue
+                    W, H = sess.width, sess.height
+                    if not (0 <= ta[0] < W and 0 <= ta[1] < H and 0 <= tb[0] < W and 0 <= tb[1] < H):
+                        continue
 
-                ok, caption = sess.try_swap_collision(
-                    cast_player(pa, allowed=seat_list), ha.id, ta,
-                    cast_player(pb, allowed=seat_list), hb.id, tb,
-                )
-                if not ok:
-                    continue
-                # v0.9.9 — _next_actionable no longer skips wastes, so
-                # each seat's pointer sits directly on the consumed
-                # StepMove. Advance by one and burn the slot.
-                for p in (pa, pb):
-                    pointers[p] += 1
-                    applied[p] += 1
-                sess.log_info(self._stamp_hour(hour, caption))
-                collisions = sess.pending_collision_events
-                sess.pending_collision_events = []
-                sess.replay_push_scene(
-                    replay,
-                    caption,
-                    owner=None,
-                    tag="collision_swap",
-                    collisions=collisions or None,
-                    hour=hour,
-                    attempted=f"swap {ha.id} ↔ {hb.id}",
-                    outcome="ok",
-                )
-                sess._redsign_hour = int(hour)  # type: ignore[attr-defined]
-                sess._pulse_probe_cameras()
-                return True
-        return False
+                    ok, caption = sess.try_swap_collision(
+                        cast_player(pa, allowed=seat_list), ha.id, ta,
+                        cast_player(pb, allowed=seat_list), hb.id, tb,
+                    )
+                    if not ok:
+                        continue
+                    # v0.9.9 — _next_actionable no longer skips wastes, so
+                    # each seat's pointer sits directly on the consumed
+                    # StepMove. Advance by one and burn the slot.
+                    for p in (pa, pb):
+                        pointers[p] += 1
+                        applied[p] += 1
+                        spent.add(p)
+                        resolved.add(p)
+                    sess.log_info(self._stamp_hour(hour, caption))
+                    collisions = sess.pending_collision_events
+                    sess.pending_collision_events = []
+                    sess.replay_push_scene(
+                        replay,
+                        caption,
+                        owner=None,
+                        tag="collision_swap",
+                        collisions=collisions or None,
+                        hour=hour,
+                        attempted=f"swap {ha.id} ↔ {hb.id}",
+                        outcome="ok",
+                    )
+                    sess._redsign_hour = int(hour)  # type: ignore[attr-defined]
+                    sess._pulse_probe_cameras()
+                    pair_found = True
+                    break
+                if pair_found:
+                    break
+            if not pair_found:
+                return resolved
 
     def _maybe_resolve_simultaneous_drops(
         self,
@@ -1483,13 +1516,27 @@ class NightSimulator:
         hour: int = 0,
         seats: Optional[Tuple[str, ...]] = None,
         skip_seats: Optional[AbstractSet[str]] = None,
-    ) -> bool:
+    ) -> Set[str]:
         """Detect & resolve simultaneous drop collisions before the round.
+
+        Returns the seats whose slot was spent here (empty if none) —
+        truthy exactly when something was resolved, so callers can
+        still read it as a flag.
 
         v0.9.10 — when multiple harvesters are trying to drop on the
         same square during the same hour, none land, all become damaged
         and stay in orbit. This is checked pre-hour (like swap collision)
         so we can handle all involved seats in one go.
+
+        v1.48 — *every* contested square on this hour is settled here,
+        where it used to stop after the first and leave the rest to the
+        next turn of the round loop. Same defect as the swap pre-pass
+        and the same cost: the clock is ``max(applied) + 1``, so the
+        second pile-up was reported an hour late, and which one came
+        second was decided by seat index. The groups are keyed by
+        target square and a seat can only be dropping on one of them,
+        so they are disjoint by construction — no rescan needed, just
+        do not leave early.
 
         v1.19 — ``skip_seats`` excludes seats that already spent this
         hour's slot in the pre-hour phase; see
@@ -1501,6 +1548,8 @@ class NightSimulator:
 
         seat_list: Tuple[str, ...] = seats if seats is not None else tuple(sess.players)
         spent = set(skip_seats or ())
+
+        resolved: Set[str] = set()
 
         # Build a map of target squares -> list of (seat, move, harvester) tuples
         drops_by_target: Dict[Tuple[int, int], List[Tuple[str, DropMove, object]]] = {}
@@ -1546,6 +1595,7 @@ class NightSimulator:
                 # Advance pointer and consume slot for this seat
                 pointers[seat] += 1
                 applied[seat] += 1
+                resolved.add(seat)
             
             # Record collision event
             sess._record_collision(
@@ -1587,11 +1637,8 @@ class NightSimulator:
             )
             sess._redsign_hour = int(hour)  # type: ignore[attr-defined]
             sess._pulse_probe_cameras()
-            
-            # Only resolve one simultaneous drop per hour (keep it simple)
-            return True
-        
-        return False
+
+        return resolved
 
     def _apply_one(
         self,
