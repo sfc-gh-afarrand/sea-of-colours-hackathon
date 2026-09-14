@@ -2796,3 +2796,36 @@ Converge is the mildest of the three: both harvesters wreck either way,
 and only the scar placement moves. It is still wrong — §3.17.3 says both
 wreck at their **original positions**, and today the first-resolving
 harvester's wreck sits on the contested cell instead.
+
+**The safety net, and a fourth bug it found.** Finishing this needs the
+dispatch reordered, so the differential harness came first:
+`tests/test_seat_order_is_not_a_factor.py` describes each scenario in
+terms of *roles*, then runs every way of seating those roles and demands
+the role-keyed outcomes agree. It was two-seat only, which turned out to
+be hiding things — the swap pre-pass walks every seat **pair** precisely
+because four seats can collide twice in one hour, and the grid graph is
+bipartite, so a movement **cycle** needs four units and cannot be built
+with two at all. At four seats it now also pins:
+
+- **rotation** — four harvesters around a 2x2 ring, nobody's destination
+  free at hour start but every destination being vacated. The ruling is
+  that a rotation is allowed; the engine currently decomposes it into
+  two head-on swaps and wrecks all four.
+- **convoy-of-three** and **three-way converge** — the step-away and
+  contention gaps compounding along a chain and beyond a pair.
+- **two independent swaps** — *new bug, found by this extension.* Two
+  unrelated head-on collisions in the same hour are **serialised into
+  consecutive hours**: the pre-pass resolves one pair, `continue`s, and
+  re-entering the loop bumps `current_hour`. Both pairs wreck either
+  way, so the board looks identical — what seat order decides is **who
+  loses the hour**, and the lower seats keep the earlier one. Only
+  reachable in 3–4 seat games, which is why two-seat testing never saw
+  it.
+
+Two invariants guard the net itself. Each scenario must be seen to
+exercise every role, after an inert one briefly "passed": idle seats
+were never locked, so the night never ran, and a board where nothing
+happened looked beautifully order-independent from every seat. And no
+seat may own more than one replay frame in an hour — the promise
+`_advance_until_valid` makes, that nothing downstream re-checks, and
+that the night clock is derived from.
