@@ -244,10 +244,7 @@ class Scenario(NamedTuple):
     gap: Optional[str]
 
 
-_FOLLOW_GAP = (
-    "#56 — a step can be refused mid-hour, so 'will B vacate?' is not "
-    "answerable at hour start; needs dependency-ordered dispatch"
-)
+
 SCENARIOS: Tuple[Scenario, ...] = (
     Scenario("control-nobody-moves", _nobody_moves, 4, 4, None),
     Scenario("swap", _swap, 2, 4, None),
@@ -259,24 +256,17 @@ SCENARIOS: Tuple[Scenario, ...] = (
     Scenario("step-onto-pickup", _step_onto_pickup, 2, 4, None),   # fixed v1.48
     # Found by this file when it grew past two seats; fixed in v1.48.
     Scenario("two-independent-swaps", _two_independent_swaps, 4, 4, None),
-    Scenario("follow", _follow, 2, 4, _FOLLOW_GAP),
-    Scenario("drop-onto-stepaway", _drop_onto_stepaway, 2, 4, _FOLLOW_GAP),
-    Scenario("convoy-of-three", _convoy_of_three, 3, 4, _FOLLOW_GAP),
+    # Step-aways and the convoy behind them — fixed v1.49 (§3.17.7).
+    Scenario("follow", _follow, 2, 4, None),
+    Scenario("drop-onto-stepaway", _drop_onto_stepaway, 2, 4, None),
+    Scenario("convoy-of-three", _convoy_of_three, 3, 4, None),
     Scenario("converge-step", _converge_step, 2, 4, None),        # fixed v1.48
     Scenario("three-way-converge", _three_way_converge, 3, 4, None),  # v1.48
     Scenario(
         "two-converge-onto-an-occupant", _two_converge_onto_an_occupant,
         3, 4, None,
     ),  # fixed v1.48
-    Scenario(
-        "rotation",
-        _rotation,
-        4,
-        4,
-        "#56 — a movement cycle has no move that is legal first, so "
-        "seat-at-a-time dispatch cannot express it; the ruling is that a "
-        "rotation is allowed",
-    ),
+    Scenario("rotation", _rotation, 4, 4, None),  # fixed v1.49
     Scenario(
         "drop-crushes-same-hour-probe",
         _drop_crushes_probe,

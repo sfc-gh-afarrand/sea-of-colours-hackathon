@@ -1757,9 +1757,9 @@ committing.
 Two harvesters arriving on the **same cell** during a Nox, or
 crossing paths on a pass-through swap, **damage each other**. This
 is NOT the probe rule — harvesters do not vaporise on contact, they
-wreck. The rule applies to four concrete patterns, and to two further
-cases ruled on beneath them — converging steps (§3.17.6) and the
-egress exception (§3.17.5):
+wreck. The rule applies to four concrete patterns, and to three further
+cases ruled on beneath them — converging steps (§3.17.6) and the two
+egress exceptions, lifting off (§3.17.5) and stepping off (§3.17.7):
 
 1. **Drop-on collision.** Player B drops a harvester onto a cell
    already occupied by Player A's healthy harvester. The drop
@@ -1825,18 +1825,35 @@ opening sentence, and it resolves like the other two step patterns:
 - It takes **two arrivals** to make a collision. One harvester stepping
   onto an empty cell is just a step.
 
-> **Known gap (v1.49).** The same reasoning plainly extends to a
-> harvester **stepping off** a cell as another steps or drops onto it,
-> and to a ring of harvesters rotating through each other's cells.
-> Those are *not* yet resolved this way: the engine still settles them
-> in the order it happens to walk the seats, which contradicts §3.10
-> and §3.13. Unlike a pickup, a step can be refused mid-hour (an EMP
-> cloud, a snap-hot cell, its own collision), so it cannot be settled
-> at hour start without ordering the moves by dependency. For the same
-> reason, §3.17.6 stands aside whenever the occupant of a contested
-> cell has a step or a pickup of its own queued that hour. Tracked as
-> `docs/OUTSTANDING_ISSUES.md` #56; do not read the lift-and-land or
-> converging-steps rulings as already covering them.
+**Stepping off is departing too (§3.17.7, v1.49).** §3.17.5 covers a
+harvester *lifting* off a cell. A harvester **stepping** off one is
+departing in exactly the same sense, and the cell it leaves may be
+taken the same hour — by a step or by a landing.
+
+- **Hand-offs work.** A steps onto the cell B is stepping off; both
+  moves succeed, no damage, no scar. Taking ground a rival is giving
+  up is a legitimate play, as it is for a lift.
+- **Convoys work, to any length.** If A follows B who follows C into
+  open ground, the whole column advances on the one hour.
+- **A ring rotates.** Four or more harvesters each moving into the next
+  one's cell all move: every destination is being vacated by someone
+  who is themselves leaving. Note this needs **four** units — the grid
+  is bipartite, so there is no shorter cycle — and that the two-unit
+  case is a pass-through swap, which §3.17.4 collides instead.
+- **A refusal propagates backwards.** If the harvester at the head of a
+  column cannot move, nobody behind it moves either, and the cell none
+  of them left stays held. A cell is only free if its occupant
+  genuinely leaves: a step cancelled by chaff, smothered by an EMP, or
+  refused for a full hold vacates nothing.
+- **It does not repeal §3.17.6.** If two rivals both step onto the cell
+  a third is stepping off, the third gets away and *the two arrivals
+  wreck each other* over the empty square.
+
+> **Known gap (v1.49).** One case is still settled by seat order: a
+> probe launched onto a cell a harvester lands on during the same hour
+> (§3.11.1). Whether the probe is crushed or supersedes the incumbent
+> depends on which seat the engine walks first. Tracked as
+> `docs/OUTSTANDING_ISSUES.md` #56.
 
 A harvester can collide with **its own House's** other harvester
 under the same rules (when multi-harvester loadouts arrive); the
@@ -3113,14 +3130,31 @@ cases open. This closes two of them and adds the rule that was missing.
   earlier hour. The board was never wrong; the account of the night
   was. Reachable only with three or four seats.
 
+- **Stepping off a cell now vacates it, like lifting off (§3.17.7).**
+  v1.48 declined to extend the egress rule to steps, on the grounds
+  that a step can be refused part-way through an hour so "will that
+  cell be free?" could not be answered in advance. It can. Reading
+  `try_step_unit` from the top, the only refusal that depends on
+  another seat is a collision at the step's own destination; every
+  other one is static, and the two dynamic gates above it — chaff and
+  an EMP-smothered unit — are already settled before the round.
+  Everything after the collision check moves the harvester
+  unconditionally (a snap-hot cell cripples it where it lands, a cloud
+  denies it the harvest; neither rewinds the step). So the engine now
+  solves it as a fixpoint instead of a race: a step into free space
+  goes, a step into a cell someone else is vacating goes, a refusal
+  propagates back down the column behind it, and what remains with
+  nobody stationary to blame is a ring, which is allowed. Hand-offs,
+  convoys of any length and rotations of four or more all resolve;
+  a two-unit ring is a pass-through swap and §3.17.4 still collides it.
+
 Nothing above changes what a *legal* move does. Added the
 `collision_converging_steps` replay tag, and `converging_steps` as a
 collision event type.
 
-**Still open (§3.17, #56).** Step-away hand-offs and rotations. A step
-can be refused part-way through an hour, so "will that cell be free?"
-cannot be answered before the hour runs; settling them needs the
-dispatch ordered by dependency rather than by seat.
+**Still open (§3.11.1, #56).** A probe launched onto a cell a harvester
+lands on in the same hour: crushed or superseding depends on seat
+order. It is the last of the six.
 
 ### v1.48 — 2026-09-13
 

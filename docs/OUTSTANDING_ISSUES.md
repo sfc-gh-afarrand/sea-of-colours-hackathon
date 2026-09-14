@@ -2720,9 +2720,11 @@ false green and wants its own fix.
 
 ## 56. 🟠 (PARTIAL, v1.48) Same-hour cell hand-offs were settled by seat index, not by the rules
 
-**Status (v1.49):** **Lift-and-land, converging steps, and same-hour
-collision stamping are fixed.** Step-away hand-offs and rotations are
-**still open** — see "Not fixed here" below.
+**Status (v1.49):** **Five of six fixed** — lift-and-land, same-hour
+collision stamping, converging steps, the occupant of a contested cell,
+and step-away hand-offs (with convoys and rotations). The last one open
+is a probe launched onto a cell a harvester lands on the same hour; see
+"Not fixed here" below.
 
 **Symptom.** A harvester dropping (or stepping) onto a cell another seat
 was lifting off during the same hour resolved two different ways
@@ -2810,24 +2812,54 @@ matter as much as its positive ones — the pass runs *before* the round,
 so a false positive wrecks two harvesters over a move that would never
 have happened.
 
-**Not fixed here.** Step-away hand-offs remain, and with them rotations
-(a ring of harvesters each moving into the next one's cell). By count
-step-away is the most common pattern left. It cannot use the same trick:
-a step can be refused part-way through an hour (an EMP cloud, a
-snap-hot cell, a collision at its own destination), so "will this unit
-vacate?" is not answerable at hour start. Resolving it needs the
-dispatch ordered by dependency rather than by seat — or iterated to a
-fixpoint, applying whatever is unblocked until nothing moves and
-treating what remains as a cycle. That touches `applied[p]`, the
-`current_hour = max(applied) + 1` clock, the chaff and pre-empt
-branches, and replay frame order — the most special-cased loop in the
-engine — so it wants its own change.
+**Step-away hand-offs — fixed in v1.49 (§3.17.7).** v1.48 declined to
+extend the egress rule to steps, reasoning that a step can be refused
+part-way through an hour so "will that cell be free?" was not
+answerable in advance. That reasoning was wrong, and usefully so.
+Reading `try_step_unit` from the top, the **only** refusal that depends
+on another seat is a collision at the step's own destination. Every
+other one is static — wrong owner, not on the surface, already damaged,
+not adjacent, out of bounds, hold full — and the two dynamic gates
+above it in the simulator, chaff and an EMP-smothered unit, are both
+settled before the round and were already being passed around.
+Critically, everything *after* the collision check moves the harvester
+unconditionally: a snap-hot cell cripples it where it lands and a cloud
+denies it the harvest, but **neither rewinds the step**, so the origin
+is vacated either way.
 
-Note that a rotation cannot even be *expressed* with fewer than four
-harvesters: the grid graph is bipartite, so its shortest cycle is length
-four. The ruling, once it is implemented, is that a rotation is allowed
-— every destination is being vacated by someone who is themselves
-leaving.
+That leaves one question, and it is a fixpoint rather than a race.
+`_steps_that_will_vacate` computes it: a step into free space goes; a
+step into a cell being vacated by a step that goes, goes; a refusal
+propagates back down the column behind it; and whatever survives with
+nobody stationary to blame is a **cycle**, which is allowed. Two or
+more steps into one cell are excluded first — they collide under
+§3.17.6 and nobody vacates.
+
+The dispatch loop was **not** reordered, which is what kept the risk
+down. The result feeds the existing `departing_units` channel that
+v1.48 built for pickups, so the ordinary seat loop resolves hand-offs,
+convoys and rotations correctly without knowing anything new. The only
+structural change is that the egress snapshot is now taken before the
+converge pre-pass rather than after it, because that pass has to know
+whether the harvester on a contested cell is leaving.
+
+`tests/test_step_away_handoff.py` pins it, and its second half is the
+half that matters: a promise that a cell will be free is only safe if
+it is never wrong. Each negative case — a blocked step, a refusal
+propagating down a convoy, a smothered unit, a full hold, a chaffed
+hour — asserts both that nothing vacated and that no two healthy
+harvesters ended up sharing a cell.
+
+**Not fixed here.** One case left: a probe launched onto a cell a
+harvester lands on during the same hour (§3.11.1). Whether the probe is
+crushed, or supersedes the incumbent and then is crushed, depends on
+which seat the engine walks first. It is the rarest of the six — 7
+player-days out of 731 — and it is tangled up with probe supersession
+rather than with §3.17, so it wants its own change. Probe crushing
+currently runs inside the mover's slot and wants to be a post-hour
+pass; note that the crush result rides on that move's caption and its
+`crushed_probes` payload, which `test_probe_death_fx`,
+`test_probe_death_echo` and `test_asset_ledger` all read.
 
 **The safety net, and a fourth bug it found.** Finishing this needs the
 dispatch reordered, so the differential harness came first:
@@ -2840,13 +2872,12 @@ bipartite, so a movement **cycle** needs four units and cannot be built
 with two at all. At four seats it now also pins:
 
 - **rotation** — four harvesters around a 2x2 ring, nobody's destination
-  free at hour start but every destination being vacated. The ruling is
-  that a rotation is allowed; the engine currently decomposes it into
-  two head-on swaps and wrecks all four.
+  free at hour start but every destination being vacated. The engine
+  used to decompose it into two head-on swaps and wreck all four; under
+  §3.17.7 the ring turns. Fixed in v1.49.
 - **convoy-of-three** and **three-way converge** — the step-away and
-  contention gaps compounding along a chain and beyond a pair. The
-  three-way converge was fixed by §3.17.6 along with the two-way one;
-  the convoy is still open.
+  contention gaps compounding along a chain and beyond a pair. Fixed by
+  §3.17.6 and §3.17.7 respectively.
 - **two independent swaps** — *new bug, found by this extension;*
   **fixed in v1.48.** Two unrelated head-on collisions in the same hour
   were **serialised into consecutive hours**: the pre-pass resolved one
