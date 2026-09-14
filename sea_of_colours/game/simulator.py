@@ -272,8 +272,22 @@ class NightSimulator:
                     seats=seats,
                     skip_seats=spent_now,
                 )
+                spent_now |= handled_simul_drop
 
-                if handled_swap or handled_simul_drop:
+                # v1.49 (§3.17.6) — two harvesters stepping into one empty
+                # cell. The plainest reading of §3.17's opening sentence,
+                # but not one of its four illustrated patterns, so it used
+                # to fall through to the seat loop and let whoever was
+                # walked first take the cell.
+                handled_converge = self._maybe_resolve_converging_steps(
+                    sess, queue_for, pointers, applied, replay,
+                    hour=current_hour,
+                    seats=seats,
+                    skip_seats=spent_now,
+                    disabled_units=disabled_units_this_hour,
+                )
+
+                if handled_swap or handled_simul_drop or handled_converge:
                     continue
 
             # v0.9.17 — hour-start visibility snapshot for live-only drops,
@@ -1633,6 +1647,185 @@ class NightSimulator:
                 collisions=collisions or None,
                 hour=hour,
                 attempted=f"simultaneous drops: {harv_label}",
+                outcome="collision",
+            )
+            sess._redsign_hour = int(hour)  # type: ignore[attr-defined]
+            sess._pulse_probe_cameras()
+
+        return resolved
+
+    def _maybe_resolve_converging_steps(
+        self,
+        sess: "GameSession",
+        queue_for: Dict[str, List[Move]],
+        pointers: Dict[str, int],
+        applied: Dict[str, int],
+        replay: List[dict],
+        *,
+        hour: int = 0,
+        seats: Optional[Tuple[str, ...]] = None,
+        skip_seats: Optional[AbstractSet[str]] = None,
+        disabled_units: Optional[AbstractSet[str]] = None,
+    ) -> Set[str]:
+        """Two or more harvesters stepping into ONE EMPTY cell (§3.17).
+
+        v1.49 (§3.17.6). §3.17's governing sentence collides two harvesters
+        *arriving* on the same cell, and this is the plainest possible
+        case of it — but it was not one of the four illustrated
+        patterns, so it fell through to the ordinary seat loop. There
+        the first seat walked completed its step and **took the cell**,
+        and only the second was turned back. Both wrecked either way,
+        so the cost was not who survived but where: the winner's wreck
+        sat on the contested cell, the scars followed it, and which
+        harvester won was decided by seat index (§3.13 says it has no
+        say in anything).
+
+        Settled the way §3.17.3 and §3.17.4 settle the other two step
+        patterns: nobody moves, everybody wrecks **at their original
+        positions**. The scar goes on the contested cell, following
+        §3.17.2 — the other case where a destination is fought over and
+        no one arrives.
+
+        Deciding it before the round is sound for the same reason the
+        egress snapshot is: every remaining way ``try_step_unit``
+        refuses a move is a **static precondition** — not on the
+        surface, already damaged, not adjacent, out of bounds, hold
+        full — so no rival can falsify one of them mid-hour and leave
+        two harvesters wrecked over a step that was never going to
+        happen. The two that are NOT static are excluded up front:
+        chaff (the caller only runs the pre-passes on an unjammed hour)
+        and an EMP-smothered unit, which is why ``disabled_units`` is
+        passed in.
+
+        A healthy harvester already standing on the contested cell is
+        rammed too and wrecks in place (§3.17.3), without spending a
+        slot — it is not acting, it is being run into. That case had the
+        same disease one cell over: the occupant was wrecked by whichever
+        stepper the seat loop reached first, and the SECOND stepper then
+        strolled on unharmed, because by then the occupant was a wreck
+        and wrecks do not block (§3.17.1).
+
+        Still deliberately narrow. An occupant that might be *leaving* —
+        a queued step or a queued pickup — is left alone, because that is
+        the step-away hand-off and the egress case, and neither is
+        settled this early in the hour.
+        """
+        from sea_of_colours.game.session import HARVESTER_HOLD_CAPACITY, _adj
+
+        seat_list: Tuple[str, ...] = seats if seats is not None else tuple(sess.players)
+        spent = set(skip_seats or ())
+        smothered = set(disabled_units or ())
+        resolved: Set[str] = set()
+
+        steps_by_target: Dict[Tuple[int, int], List[Tuple[str, object]]] = {}
+        for p in seat_list:
+            if p in spent or applied[p] >= MAX_MOVES:
+                continue
+            move, _ = _next_actionable(queue_for[p], pointers[p])
+            if not isinstance(move, StepMove):
+                continue
+            h = sess.entities.get(move.unit)
+            if not h or h.entity_type != "harvester" or h.owner != p:
+                continue
+            if h.x is None or h.y is None:
+                continue
+            if bool(getattr(h, "damaged", False)):
+                continue
+            if h.id in smothered:
+                continue
+            if len(h.cargo_squares) >= HARVESTER_HOLD_CAPACITY:
+                continue
+            tx, ty = int(move.to[0]), int(move.to[1])
+            if not (0 <= tx < sess.width and 0 <= ty < sess.height):
+                continue
+            if not _adj((h.x, h.y), (tx, ty)):
+                continue
+            steps_by_target.setdefault((tx, ty), []).append((p, h))
+
+        for (tx, ty), movers in steps_by_target.items():
+            if len(movers) < 2:
+                continue
+
+            # Anyone healthy already standing there wrecks in place with
+            # them (§3.17.3), and does NOT spend a slot — it is not
+            # acting, it is being run into. Without this the occupant was
+            # rammed by whichever stepper the seat loop reached first,
+            # and the SECOND one strolled onto the cell unharmed, because
+            # by then the occupant was a wreck and wrecks do not block.
+            #
+            # An occupant that might be leaving is left well alone: a
+            # queued step is the step-away hand-off and a queued pickup
+            # is the egress case, and neither is settled at this point in
+            # the hour (the egress snapshot is taken below, after the
+            # pre-passes). Ruling on them here would pre-empt the one
+            # gap #56 still has open.
+            occupants = sess._undamaged_harvesters_at(tx, ty)
+            if any(
+                isinstance(
+                    _next_actionable(queue_for[o.owner], pointers[o.owner])[0],
+                    (StepMove, PickupMove),
+                )
+                for o in occupants
+                if o.owner in queue_for and o.owner not in spent
+            ):
+                continue
+
+            owners: List[str] = []
+            harvester_ids: List[str] = []
+            total_spilled = 0
+
+            for seat, h in movers:
+                total_spilled += sess._damage_harvester(h)
+                owners.append(str(h.owner))
+                harvester_ids.append(str(h.id))
+                pointers[seat] += 1
+                applied[seat] += 1
+                spent.add(seat)
+                resolved.add(seat)
+
+            for occupant in occupants:
+                total_spilled += sess._damage_harvester(occupant)
+                owners.append(str(occupant.owner))
+                harvester_ids.append(str(occupant.id))
+
+            sess._record_collision(
+                tx, ty, owners,
+                event_type="converging_steps",
+                harvesters=harvester_ids,
+            )
+            # v1.6 kill-feed: every House in the pile-up damaged every
+            # other House's unit.
+            _distinct = [
+                o for i, o in enumerate(owners) if o and o not in owners[:i]
+            ]
+            for _atk in _distinct:
+                for _vic in _distinct:
+                    if _atk != _vic:
+                        sess._attrib("harv_damaged", str(_atk), str(_vic))
+
+            owners_label = "+".join(sorted(set(owners)))
+            harv_label = ", ".join(harvester_ids)
+            caption = (
+                f"CONVERGING STEPS at ({tx},{ty}) — "
+                f"({owners_label}) {harv_label} all wreck at their "
+                f"original positions, {total_spilled} cargo square(s) lost"
+            )
+            sess.log_info(self._stamp_hour(hour, caption))
+            collisions = sess.pending_collision_events
+            sess.pending_collision_events = []
+            # Ownerless, like the other joint collisions. The client
+            # needs no new branch for it: the timeline renders any frame
+            # without an owner, and playCollisionFx works off the
+            # ``collisions`` payload rather than the tag. There is no
+            # bespoke movement to animate here — nobody went anywhere.
+            sess.replay_push_scene(
+                replay,
+                caption,
+                owner=None,
+                tag="collision_converging_steps",
+                collisions=collisions or None,
+                hour=hour,
+                attempted=f"converging steps: {harv_label}",
                 outcome="collision",
             )
             sess._redsign_hour = int(hour)  # type: ignore[attr-defined]

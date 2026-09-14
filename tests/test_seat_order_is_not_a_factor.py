@@ -201,6 +201,21 @@ def _three_way_converge(sess, A, B, C):
         sess.stash_policy(seat, [{"a": "step", "unit": _h(seat), "to": [6, 7]}])
 
 
+def _two_converge_onto_an_occupant(sess, A, B, C):
+    """Two step onto a cell a healthy third is standing still on.
+
+    The occupant is rammed by whoever arrives — but a wreck does not
+    block (§3.17.1), so once the first stepper had wrecked it the second
+    used to walk on unharmed. Seat index picked which.
+    """
+    sess.entities[_h(A)].x, sess.entities[_h(A)].y = 5, 7
+    sess.entities[_h(B)].x, sess.entities[_h(B)].y = 7, 7
+    sess.entities[_h(C)].x, sess.entities[_h(C)].y = 6, 7
+    sess.stash_policy(A, [{"a": "step", "unit": _h(A), "to": [6, 7]}])
+    sess.stash_policy(B, [{"a": "step", "unit": _h(B), "to": [6, 7]}])
+    sess.stash_policy(C, [{"a": "wait"}])
+
+
 def _convoy_of_three(sess, A, B, C):
     """A chain: A follows B follows C, who steps into open space.
 
@@ -233,12 +248,6 @@ _FOLLOW_GAP = (
     "#56 — a step can be refused mid-hour, so 'will B vacate?' is not "
     "answerable at hour start; needs dependency-ordered dispatch"
 )
-_CONVERGE_GAP = (
-    "#56 — needs the contention pre-pass generalised to group steps with "
-    "drops; all wreck either way, but the scars land on different cells "
-    "by seat"
-)
-
 SCENARIOS: Tuple[Scenario, ...] = (
     Scenario("control-nobody-moves", _nobody_moves, 4, 4, None),
     Scenario("swap", _swap, 2, 4, None),
@@ -253,8 +262,12 @@ SCENARIOS: Tuple[Scenario, ...] = (
     Scenario("follow", _follow, 2, 4, _FOLLOW_GAP),
     Scenario("drop-onto-stepaway", _drop_onto_stepaway, 2, 4, _FOLLOW_GAP),
     Scenario("convoy-of-three", _convoy_of_three, 3, 4, _FOLLOW_GAP),
-    Scenario("converge-step", _converge_step, 2, 4, _CONVERGE_GAP),
-    Scenario("three-way-converge", _three_way_converge, 3, 4, _CONVERGE_GAP),
+    Scenario("converge-step", _converge_step, 2, 4, None),        # fixed v1.48
+    Scenario("three-way-converge", _three_way_converge, 3, 4, None),  # v1.48
+    Scenario(
+        "two-converge-onto-an-occupant", _two_converge_onto_an_occupant,
+        3, 4, None,
+    ),  # fixed v1.48
     Scenario(
         "rotation",
         _rotation,

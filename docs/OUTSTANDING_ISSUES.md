@@ -2720,8 +2720,9 @@ false green and wants its own fix.
 
 ## 56. 🟠 (PARTIAL, v1.48) Same-hour cell hand-offs were settled by seat index, not by the rules
 
-**Status (v1.48):** **Lift-and-land is fixed.** Step-away and converging
-steps are **still open** — see "Not fixed here" below.
+**Status (v1.49):** **Lift-and-land, converging steps, and same-hour
+collision stamping are fixed.** Step-away hand-offs and rotations are
+**still open** — see "Not fixed here" below.
 
 **Symptom.** A harvester dropping (or stepping) onto a cell another seat
 was lifting off during the same hour resolved two different ways
@@ -2780,22 +2781,53 @@ Pinned by `tests/test_egress_is_not_seat_ordered.py`, which runs each
 scenario with the roles swapped between seats and asserts the two runs
 agree. Ruled and written up as RULEBOOK §3.17.5.
 
-**Not fixed here.** Step-away hand-offs and two harvesters converging on
-one empty cell are still order-dependent, and by count they are the more
-common patterns. They cannot use the same trick: a step can be refused
-part-way through an hour (an EMP cloud, a snap-hot cell, a collision at
-its own destination), so "will this unit vacate?" is not answerable at
-hour start. Resolving them properly needs the dispatch ordered by
-dependency rather than by seat, plus the contention pre-pass generalised
-to group steps and drops together. That touches `applied[p]`, the
+**Converging steps — fixed in v1.49 (§3.17.6).** Two or more harvesters
+stepping into one cell now all wreck where they stood, with the scar on
+the contested cell. Previously the first seat walked **completed its
+step and took the cell**; only the second was turned back. A new
+pre-pass, `_maybe_resolve_converging_steps`, groups this hour's steps by
+destination and settles any square with two or more arrivals before the
+round. Deciding it up front is sound for the same reason the egress
+snapshot is: every remaining way `try_step_unit` refuses a move is a
+**static precondition** (not on the surface, damaged, not adjacent, out
+of bounds, hold full), so no rival can falsify one mid-hour and leave
+two harvesters wrecked over a step that was never going to happen. The
+two non-static ones are excluded explicitly — chaff, because the caller
+only runs the pre-passes on an unjammed hour, and EMP, via
+`disabled_units`.
+
+While pinning it, a **second bug one cell over**: two harvesters
+stepping onto a cell a healthy third is standing on. The occupant was
+rammed by whichever stepper the loop reached first — and the second then
+walked on **unharmed**, because by then the occupant was a wreck and
+wrecks do not block (§3.17.1). So seat index decided which attacker paid
+and which got the square. A stationary occupant is now rammed by all of
+them and wrecks in place without spending an action. An occupant with a
+step or pickup of its own queued is deliberately left alone: that is the
+still-open gap below, and ruling on it here would pre-empt it. Pinned by
+`tests/test_converging_steps_wreck_at_origin.py`, whose negative cases
+matter as much as its positive ones — the pass runs *before* the round,
+so a false positive wrecks two harvesters over a move that would never
+have happened.
+
+**Not fixed here.** Step-away hand-offs remain, and with them rotations
+(a ring of harvesters each moving into the next one's cell). By count
+step-away is the most common pattern left. It cannot use the same trick:
+a step can be refused part-way through an hour (an EMP cloud, a
+snap-hot cell, a collision at its own destination), so "will this unit
+vacate?" is not answerable at hour start. Resolving it needs the
+dispatch ordered by dependency rather than by seat — or iterated to a
+fixpoint, applying whatever is unblocked until nothing moves and
+treating what remains as a cycle. That touches `applied[p]`, the
 `current_hour = max(applied) + 1` clock, the chaff and pre-empt
 branches, and replay frame order — the most special-cased loop in the
-engine — so it wants its own change and its own scenario harness.
+engine — so it wants its own change.
 
-Converge is the mildest of the three: both harvesters wreck either way,
-and only the scar placement moves. It is still wrong — §3.17.3 says both
-wreck at their **original positions**, and today the first-resolving
-harvester's wreck sits on the contested cell instead.
+Note that a rotation cannot even be *expressed* with fewer than four
+harvesters: the grid graph is bipartite, so its shortest cycle is length
+four. The ruling, once it is implemented, is that a rotation is allowed
+— every destination is being vacated by someone who is themselves
+leaving.
 
 **The safety net, and a fourth bug it found.** Finishing this needs the
 dispatch reordered, so the differential harness came first:
@@ -2812,7 +2844,9 @@ with two at all. At four seats it now also pins:
   that a rotation is allowed; the engine currently decomposes it into
   two head-on swaps and wrecks all four.
 - **convoy-of-three** and **three-way converge** — the step-away and
-  contention gaps compounding along a chain and beyond a pair.
+  contention gaps compounding along a chain and beyond a pair. The
+  three-way converge was fixed by §3.17.6 along with the two-way one;
+  the convoy is still open.
 - **two independent swaps** — *new bug, found by this extension;*
   **fixed in v1.48.** Two unrelated head-on collisions in the same hour
   were **serialised into consecutive hours**: the pre-pass resolved one

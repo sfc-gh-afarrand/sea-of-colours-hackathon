@@ -1,7 +1,7 @@
 # Sea of Colours — Master Rulebook
 
-Version: 1.48
-Last updated: 2026-09-13
+Version: 1.49
+Last updated: 2026-09-14
 
 This is the single source of truth for the world, the fiction, and how
 play resolves. Every change is recorded in the [Changelog](#changelog) at
@@ -1757,7 +1757,9 @@ committing.
 Two harvesters arriving on the **same cell** during a Nox, or
 crossing paths on a pass-through swap, **damage each other**. This
 is NOT the probe rule — harvesters do not vaporise on contact, they
-wreck. The rule applies to four concrete patterns:
+wreck. The rule applies to four concrete patterns, and to two further
+cases ruled on beneath them — converging steps (§3.17.6) and the
+egress exception (§3.17.5):
 
 1. **Drop-on collision.** Player B drops a harvester onto a cell
    already occupied by Player A's healthy harvester. The drop
@@ -1807,16 +1809,34 @@ there is nothing to collide with:
   chaff (§4.9) does not lift, so its harvester stays an occupant and
   the incoming move collides with it as normal.
 
-> **Known gap (v1.48).** The same reasoning plainly extends to a
+**Converging steps (§3.17.6, v1.49).** Two or more harvesters stepping
+into the **same cell** on the same hour is the plainest case of §3.17's
+opening sentence, and it resolves like the other two step patterns:
+
+- **Nobody arrives.** Every converging move is cancelled and each
+  harvester **wrecks where it stood**, spilling all cargo — exactly as
+  §3.17.3 and §3.17.4 leave their steppers.
+- **The scar goes on the contested cell**, not on the origins,
+  following §3.17.2 — the other pattern where a destination is fought
+  over and no one reaches it.
+- **A healthy occupant is rammed too** and wrecks in place, without
+  spending an action; it was not acting, it was run into. It makes no
+  difference how many came at it.
+- It takes **two arrivals** to make a collision. One harvester stepping
+  onto an empty cell is just a step.
+
+> **Known gap (v1.49).** The same reasoning plainly extends to a
 > harvester **stepping off** a cell as another steps or drops onto it,
-> and to two harvesters stepping into one empty cell. Those are *not*
-> yet resolved this way: the engine still settles them in the order it
-> happens to walk the seats, which contradicts §3.10 and §3.13. Unlike
-> a pickup, a step can be refused mid-hour (an EMP cloud, a snap-hot
-> cell, its own collision), so it cannot be settled at hour start
-> without ordering the moves by dependency. Tracked as
-> `docs/OUTSTANDING_ISSUES.md` #56; do not read the lift-and-land
-> ruling as already covering them.
+> and to a ring of harvesters rotating through each other's cells.
+> Those are *not* yet resolved this way: the engine still settles them
+> in the order it happens to walk the seats, which contradicts §3.10
+> and §3.13. Unlike a pickup, a step can be refused mid-hour (an EMP
+> cloud, a snap-hot cell, its own collision), so it cannot be settled
+> at hour start without ordering the moves by dependency. For the same
+> reason, §3.17.6 stands aside whenever the occupant of a contested
+> cell has a step or a pickup of its own queued that hour. Tracked as
+> `docs/OUTSTANDING_ISSUES.md` #56; do not read the lift-and-land or
+> converging-steps rulings as already covering them.
 
 A harvester can collide with **its own House's** other harvester
 under the same rules (when multi-harvester loadouts arrive); the
@@ -1883,8 +1903,9 @@ window for trails (§3.12).
 
 **Replay accounting.** Each collision pushes a single replay frame
 with ``tag = "drop"`` (drop-on / step-into), ``tag =
-"collision_swap"`` (pass-through), or ``tag =
-"collision_simultaneous_drops"`` (simultaneous drops), carrying a
+"collision_swap"`` (pass-through), ``tag =
+"collision_simultaneous_drops"`` (simultaneous drops), or ``tag =
+"collision_converging_steps"`` (converging steps, v1.49), carrying a
 structured ``collisions: [{type, at, owners, harvesters}]`` payload
 so the client can replay the impact ring animation in the
 appropriate House colours.
@@ -3060,6 +3081,46 @@ SOC_BACKEND=memory python scripts/run_season.py --seed 1
 ---
 
 ## Changelog
+
+### v1.49 — 2026-09-14
+
+**Converging steps, and two more places seat index was deciding
+things (§3.17.6).**
+
+v1.48 fixed lift-and-land and left the rest of §3.17's unillustrated
+cases open. This closes two of them and adds the rule that was missing.
+
+- **Two harvesters stepping into one cell now both wreck where they
+  stood (§3.17.6).** This is the plainest reading of §3.17's opening
+  sentence and it was not one of the four illustrated patterns, so it
+  fell through to the ordinary seat loop — where the first seat walked
+  **completed its step and took the cell**, and only the second was
+  turned back. Both wrecked either way; what seat index decided was
+  where the survivorless wreck sat and where the scar was stamped. The
+  scar now goes on the contested cell (§3.17.2's convention for a
+  destination nobody reaches) and the harvesters wreck at their
+  origins (§3.17.3 and §3.17.4's convention for a cancelled step).
+- **A healthy occupant of the contested cell is rammed by all of
+  them.** It used to be rammed by whichever stepper the loop reached
+  first, after which the second strolled on unharmed — a wreck does
+  not block (§3.17.1), so the first collision cleared the way for the
+  second. Three or more arrivals settle as one event.
+- **Everything contended on one hour is now recorded on that hour.**
+  The contention pre-passes handled one collision and handed back to
+  the round loop for the next, but the loop takes its clock from the
+  moves already applied, so a second unrelated pile-up was written
+  down an hour late — and the pair on the lower seats always kept the
+  earlier hour. The board was never wrong; the account of the night
+  was. Reachable only with three or four seats.
+
+Nothing above changes what a *legal* move does. Added the
+`collision_converging_steps` replay tag, and `converging_steps` as a
+collision event type.
+
+**Still open (§3.17, #56).** Step-away hand-offs and rotations. A step
+can be refused part-way through an hour, so "will that cell be free?"
+cannot be answered before the hour runs; settling them needs the
+dispatch ordered by dependency rather than by seat.
 
 ### v1.48 — 2026-09-13
 
