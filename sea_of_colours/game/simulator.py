@@ -400,6 +400,15 @@ class NightSimulator:
                 if applied_this_pass:
                     applied[p] += 1
 
+            # v1.49 (§3.11.1) — last thing in the hour, once every seat
+            # has had its say: a probe that ended up under a harvester is
+            # crushed no matter which of the two got there first. See
+            # :meth:`_crush_probes_under_harvesters` for why the mover's
+            # own crush is left exactly as it was.
+            self._crush_probes_under_harvesters(
+                sess, replay, hour=current_hour,
+            )
+
         # v0.9.13 — normalise per-seat hour stamps to the TRUE
         # hours-consumed for each seat. During resolution the planetary
         # clock is ``current_hour = max(applied) + 1`` shared across all
@@ -1967,6 +1976,78 @@ class NightSimulator:
             sess._pulse_probe_cameras()
 
         return resolved
+
+    def _crush_probes_under_harvesters(
+        self,
+        sess: "GameSession",
+        replay: List[dict],
+        *,
+        hour: int,
+    ) -> None:
+        """v1.49 (§3.11.1) — nothing survives the hour under a harvester.
+
+        Crushing is normally the mover's own business, done inside its
+        slot, and for the ordinary case that is right: a harvester rides
+        onto a probe that was already there. It is wrong when the probe
+        launches onto the harvester's cell on the SAME hour, because
+        then the answer turned on seat index. Prober first and its probe
+        was flattened by the landing that followed; harvester first and
+        the probe settled underneath one and lived, which is also the
+        only way the board could ever show a probe and a harvester
+        sharing a cell.
+
+        This closes it without disturbing the mover's crush, which keeps
+        its caption, its frame and its kill-feed credit. The sweep runs
+        once every seat has acted, so by then the ordinary case has
+        cleaned up after itself and the only thing left to find is a
+        probe that arrived late.
+
+        A cell with more than one harvester on it is a wreck pile, and
+        the crush is credited to nobody: picking one of them would put
+        the seat loop back in charge of the answer.
+        """
+        by_cell: Dict[Tuple[int, int], List[str]] = {}
+        for e in sess.entities.values():
+            if e.entity_type == "harvester" and e.x is not None:
+                by_cell.setdefault((int(e.x), int(e.y)), []).append(str(e.owner))
+        if not by_cell:
+            return
+        buried = sorted({
+            (int(e.x), int(e.y))
+            for e in sess.entities.values()
+            if e.entity_type == "probe"
+            and e.x is not None
+            and (int(e.x), int(e.y)) in by_cell
+        })
+        if not buried:
+            return
+
+        msgs: List[str] = []
+        for x, y in buried:
+            owners = by_cell[(x, y)]
+            msgs.extend(sess.consume_probes_at(
+                x, y, crusher_owner=owners[0] if len(owners) == 1 else None,
+            ))
+        if not msgs:
+            return
+
+        crushed_probes = sess.pending_probe_crush_events
+        sess.pending_probe_crush_events = []
+        caption = "; ".join(msgs)
+        sess.log_info(self._stamp_hour(hour, caption))
+        # Ownerless, like the joint collisions: the probe's House lost it
+        # and the harvester's House did nothing but stand there, so
+        # neither one is the actor. The client needs no new branch —
+        # playProbeCrushFx works off ``crushed_probes``, not the tag.
+        sess.replay_push_scene(
+            replay,
+            caption,
+            owner=None,
+            tag="probe_crushed",
+            crushed_probes=crushed_probes or None,
+            hour=hour,
+            outcome="ok",
+        )
 
     def _apply_one(
         self,

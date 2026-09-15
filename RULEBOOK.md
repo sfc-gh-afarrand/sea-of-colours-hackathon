@@ -1153,6 +1153,13 @@ grammar but massively simplified:
   rides over the probe's tile**, at which point the probe is crushed —
   regardless of which House owns it or which House owns the harvester.
   The last recorded snapshot remains in the owner's echo intel as usual.
+  **Order within the hour does not matter (v1.49):** a probe launched
+  onto a cell a harvester is landing on the same hour is crushed just
+  the same, and so is one that finds a harvester already parked there.
+  A probe and a harvester never share a tile at the end of an hour.
+  The launch itself is not refused — it flies, it is public (§3.15),
+  and it supersedes any older probe on the cell (§3.16) before the
+  harvester's weight settles on it.
   **Optional decay (`SOC_PROBE_LIFETIME_NIGHTS=K`, v0.9.17):** when set,
   a probe also **expires at Aurora** once it has been on the surface for
   `K` Nox — its disk drops to echo exactly like a crush, the owner
@@ -1849,12 +1856,6 @@ taken the same hour — by a step or by a landing.
   a third is stepping off, the third gets away and *the two arrivals
   wreck each other* over the empty square.
 
-> **Known gap (v1.49).** One case is still settled by seat order: a
-> probe launched onto a cell a harvester lands on during the same hour
-> (§3.11.1). Whether the probe is crushed or supersedes the incumbent
-> depends on which seat the engine walks first. Tracked as
-> `docs/OUTSTANDING_ISSUES.md` #56.
-
 A harvester can collide with **its own House's** other harvester
 under the same rules (when multi-harvester loadouts arrive); the
 collision ring then renders in a single colour. Damage flag does
@@ -1925,7 +1926,11 @@ with ``tag = "drop"`` (drop-on / step-into), ``tag =
 "collision_converging_steps"`` (converging steps, v1.49), carrying a
 structured ``collisions: [{type, at, owners, harvesters}]`` payload
 so the client can replay the impact ring animation in the
-appropriate House colours.
+appropriate House colours. The end-of-hour probe sweep (§3.11.1,
+v1.49) uses the same shape one level down: an ownerless
+``tag = "probe_crushed"`` frame carrying ``crushed_probes``, which is
+the payload the mover's own frame has carried since v0.7.4 and which
+drives the pixel-splash either way.
 
 #### 3.17.1 Wreckage glyph + co-occupancy
 
@@ -3148,13 +3153,27 @@ cases open. This closes two of them and adds the rule that was missing.
   convoys of any length and rotations of four or more all resolve;
   a two-unit ring is a pass-through swap and §3.17.4 still collides it.
 
+- **A probe never ends the hour under a harvester (§3.11.1).** The last
+  of the six. §3.11.1 has always crushed a probe a harvester rides
+  over, and the engine did it inside the mover's own slot — right for
+  the ordinary case, wrong when the probe launches onto the cell on the
+  *same* hour, because then the answer came down to seat index. Prober
+  first and the probe was flattened by the landing behind it; harvester
+  first and the probe settled underneath one and lived. A sweep at the
+  close of every hour now crushes whatever is left buried, so the two
+  orders agree. The launch is still not refused and still supersedes an
+  older probe on the cell (§3.16) on its way in. New `probe_crushed`
+  replay tag, ownerless like the joint collisions; a cell holding more
+  than one harvester is a wreck pile and credits the crush to nobody.
+
 Nothing above changes what a *legal* move does. Added the
 `collision_converging_steps` replay tag, and `converging_steps` as a
 collision event type.
 
-**Still open (§3.11.1, #56).** A probe launched onto a cell a harvester
-lands on in the same hour: crushed or superseding depends on seat
-order. It is the last of the six.
+**Issue #56 is closed.** All six seat-order dependencies found by the
+differential harness are fixed, and `tests/test_seat_order_is_not_a_factor.py`
+carries no xfail: every scenario in it is required to produce the same
+answer under all 2-, 3- and 4-seat role permutations.
 
 ### v1.48 — 2026-09-13
 

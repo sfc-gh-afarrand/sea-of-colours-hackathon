@@ -2121,7 +2121,7 @@ set, with a test.
 | 44 | Adding Advanced's fourth night moved three reels between days without re-shooting their films, and a film carries its day burnt into the recorded chrome — so the modal said `NOX 03` over a day-4 board, and `adv_buy_chaff` still quoted 255 blue and pre-subsidy advice. All three re-shot (`adv_emp` needed `_EMP_TAKES` to leave it a spendable weapon on night four), and the reel-day/shoot-turn agreement is now a test | ✅ done (v1.36) | no |
 | 45 | The engine's night log is one shared feed with no owner column, and `get_view` put all twenty rows on every agent's percept: a rival's landing coordinates (private, §3.15) and a rival bot's rationale line in full. Nothing shipped read it. `recent_log` is now cut to rows naming no other seat; the blocks entitled to the whole log still get it | ✅ done (v1.38) | no |
 | 46 | V12's prompt rendered a rival's 600-blue arsenal as `emp=[0..3] chaff=[0..2]` — independent marginals that read as a joint range, describing 1200 blue under a 600 cap. A lone SNAP (100 blue) rendered no block at all, and `snap_hit` reached neither the reaction path nor the event renderer. The estimate now carries the decoded rack set and states it as "exactly ONE of these N"; warnings gate on `could_hold`, which carries its own minimum spend. Engine: `snap_launch` now counts in the public activity tally | ✅ done (v1.39) | no |
-| 56 | Same-hour cell hand-offs were settled by seat index rather than by §3.17's "two harvesters *arriving*" rule, so a rival landing on a cell you were lifting off either cost you nothing or cost you both harvesters and the whole hold, depending only on which seat `p1`/`p2` the engine walked first — 24% of stored player-days contain such an hour. Lift-and-land now resolves off an hour-start egress snapshot and is ruled a non-collision (§3.17.5) | 🟠 partial (v1.48 — step-away + converge still open) | no |
+| 56 | Same-hour cell hand-offs were settled by seat index rather than by §3.17's "two harvesters *arriving*" rule, so a rival landing on a cell you were lifting off either cost you nothing or cost you both harvesters and the whole hold, depending only on which seat `p1`/`p2` the engine walked first — 24% of stored player-days contain such an hour. A differential harness over every role-to-seat permutation found six of these; all six are now closed. Egress (lift-off §3.17.5, step-off §3.17.7) resolves off an hour-start snapshot, converging steps wreck at origin (§3.17.6), every same-hour collision is stamped on its own hour, and a probe never ends an hour under a harvester (§3.11.1) | ✅ done (v1.48–v1.49) | no |
 
 ## 47. ✅ (DONE, v1.40) The SNAP doctrine named a move the menu could not offer
 
@@ -2718,13 +2718,14 @@ false green and wants its own fix.
 
 ---
 
-## 56. 🟠 (PARTIAL, v1.48) Same-hour cell hand-offs were settled by seat index, not by the rules
+## 56. ✅ (DONE, v1.49) Same-hour cell hand-offs were settled by seat index, not by the rules
 
-**Status (v1.49):** **Five of six fixed** — lift-and-land, same-hour
+**Status (v1.49):** **Closed — all six fixed.** Lift-and-land, same-hour
 collision stamping, converging steps, the occupant of a contested cell,
-and step-away hand-offs (with convoys and rotations). The last one open
-is a probe launched onto a cell a harvester lands on the same hour; see
-"Not fixed here" below.
+step-away hand-offs (with convoys and rotations), and the probe crushed
+by a same-hour landing. `tests/test_seat_order_is_not_a_factor.py`
+carries no xfail: every scenario in it must give the same answer under
+all 2-, 3- and 4-seat role permutations.
 
 **Symptom.** A harvester dropping (or stepping) onto a cell another seat
 was lifting off during the same hour resolved two different ways
@@ -2850,19 +2851,46 @@ propagating down a convoy, a smothered unit, a full hold, a chaffed
 hour — asserts both that nothing vacated and that no two healthy
 harvesters ended up sharing a cell.
 
-**Not fixed here.** One case left: a probe launched onto a cell a
-harvester lands on during the same hour (§3.11.1). Whether the probe is
-crushed, or supersedes the incumbent and then is crushed, depends on
-which seat the engine walks first. It is the rarest of the six — 7
-player-days out of 731 — and it is tangled up with probe supersession
-rather than with §3.17, so it wants its own change. Probe crushing
-currently runs inside the mover's slot and wants to be a post-hour
-pass; note that the crush result rides on that move's caption and its
-`crushed_probes` payload, which `test_probe_death_fx`,
-`test_probe_death_echo` and `test_asset_ledger` all read.
+**The probe crush — fixed in v1.49 (§3.11.1).** The rarest of the six,
+7 player-days out of 731, and the only one not about §3.17. A harvester
+crushes a probe it rides over, and the engine did that inside the
+mover's slot. That is the right home for the ordinary case, where the
+probe was already there. It is the wrong home when the probe launches
+onto the harvester's cell the *same* hour: prober first and the probe is
+flattened by the landing behind it; harvester first and the probe
+settles underneath one and lives — which is also the only way the board
+could ever show a probe and a harvester sharing a tile.
 
-**The safety net, and a fourth bug it found.** Finishing this needs the
-dispatch reordered, so the differential harness came first:
+The fix is deliberately **additive**. `_crush_probes_under_harvesters`
+runs at the close of every hour, once every seat has acted, and crushes
+whatever is left buried. The mover's own crush is untouched, so the
+ordinary case keeps its caption, its frame and its kill-feed credit, and
+the sweep finds nothing to do — which is what kept `test_probe_death_fx`,
+`test_probe_death_echo` and `test_asset_ledger` off the blast radius.
+The sweep reads the *board*, not this hour's moves, so a save carrying
+the old bug's leftovers heals itself on the next hour it runs.
+
+Two details worth knowing. The launch is not refused and still
+supersedes an older probe on the cell (§3.16) on the way in, so the
+probe's House pays for the shot either way. And the new ownerless
+`probe_crushed` frame credits a wreck pile — a cell with more than one
+harvester on it — to nobody: picking one of them would hand the answer
+straight back to the seat loop.
+
+What the narrow fix deliberately leaves is the kill-feed **credit**
+asymmetry on the incumbent probe. Prober first, the incumbent is
+*superseded* by the arriving probe; harvester first, it is *crushed* by
+the landing. The board ends identical either way and no House gains or
+loses an asset, but `probes_superseded` and `probes_crushed` differ by
+one. Closing that means moving all crushing into the sweep, which
+changes the frame the FX and the ledger read — worth doing only if the
+stat ever matters.
+
+**The safety net, and a fourth bug it found.** The expectation going in
+was that finishing this would need the dispatch loop reordered, so the
+differential harness came first. In the event none of the six needed it
+— each one turned out to be answerable before the round, or after it —
+but the harness is what made that safe to find out.
 `tests/test_seat_order_is_not_a_factor.py` describes each scenario in
 terms of *roles*, then runs every way of seating those roles and demands
 the role-keyed outcomes agree. It was two-seat only, which turned out to

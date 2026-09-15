@@ -267,14 +267,8 @@ SCENARIOS: Tuple[Scenario, ...] = (
         3, 4, None,
     ),  # fixed v1.48
     Scenario("rotation", _rotation, 4, 4, None),  # fixed v1.49
-    Scenario(
-        "drop-crushes-same-hour-probe",
-        _drop_crushes_probe,
-        2,
-        4,
-        "#56 — probe crushing runs inside the mover's slot; wants to be "
-        "a post-hour pass",
-    ),
+    # The last of the six — fixed v1.49 by the post-hour sweep (§3.11.1).
+    Scenario("drop-crushes-same-hour-probe", _drop_crushes_probe, 2, 4, None),
 )
 
 
