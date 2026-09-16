@@ -32,6 +32,8 @@ OUT = Path("reports/weapons-guide-probe")
 
 #: Stages are the point of the page; a thin one is a broken one.
 MIN_BODY_CHARS = 80
+#: Links in the chain, tabs in the player, and panels behind them.
+N_STAGES = 11
 
 
 def main() -> int:
@@ -60,9 +62,9 @@ def main() -> int:
 
         links = pg.locator(".wp-link")
         tabs = pg.locator(".wp-tab")
-        check("chain built 10 links", links.count() == 10, f"got {links.count()}")
+        check("chain built 11 links", links.count() == N_STAGES, f"got {links.count()}")
         check("chain built 4 acts", pg.locator(".wp-act").count() == 4)
-        check("10 tabs", tabs.count() == 10, f"got {tabs.count()}")
+        check("11 tabs", tabs.count() == N_STAGES, f"got {tabs.count()}")
 
         pg.screenshot(path=str(OUT / "01-hero.png"))
         pg.locator("#chain").scroll_into_view_if_needed()
@@ -80,30 +82,34 @@ def main() -> int:
             title = pg.locator("#wp-title").inner_text().strip()
             body = pg.locator("#wp-body").inner_text()
             code = pg.locator("#wp-code .gd-term").count()
+            write = pg.locator("#wp-write .gd-term").count()
             titles.add(title)
             if not title:
                 problems.append(f"stage {i + 1}: no title")
             if code == 0:
-                problems.append(f"stage {i + 1}: no code block")
+                problems.append(f"stage {i + 1}: no in-the-tree code")
+            if write == 0:
+                problems.append(f"stage {i + 1}: no what-you-write example")
             if len(body) < MIN_BODY_CHARS:
                 problems.append(f"stage {i + 1}: body only {len(body)} chars")
-        check("10 distinct stage titles", len(titles) == 10, f"got {len(titles)}")
+        check("11 distinct stage titles", len(titles) == N_STAGES, f"got {len(titles)}")
 
         # A chain link has to reach its stage, or the overview is a lie.
         pg.locator("#chain").scroll_into_view_if_needed()
         pg.wait_for_timeout(300)
-        links.nth(8).click()
+        links.nth(9).click()
         pg.wait_for_timeout(450)
         check(
-            "chain link 09 opens the packager stage",
-            "packager" in pg.locator("#wp-status").inner_text().lower(),
+            "chain link 10 opens the execute stage",
+            "execute" in pg.locator("#wp-status").inner_text().lower(),
         )
 
         for anchor, shot in (
             ("#stages", "03-stages.png"),
-            ("#economy", "04-economy.png"),
-            ("#ladder", "05-ladder.png"),
-            ("#map", "06-map.png"),
+            ("#doctrine", "04-doctrine.png"),
+            ("#economy", "05-economy.png"),
+            ("#ladder", "06-ladder.png"),
+            ("#map", "07-map.png"),
         ):
             pg.locator(anchor).scroll_into_view_if_needed()
             pg.wait_for_timeout(420)
@@ -118,7 +124,7 @@ def main() -> int:
             check(f"no horizontal overflow @{w}", sw <= cw + 1, f"{sw} vs {cw}")
         pg.locator("#stages").scroll_into_view_if_needed()
         pg.wait_for_timeout(300)
-        pg.screenshot(path=str(OUT / "07-narrow.png"))
+        pg.screenshot(path=str(OUT / "08-narrow.png"))
 
         br.close()
 

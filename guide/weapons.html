@@ -11,7 +11,7 @@
   Palette and chrome are lifted from guide/index.html so the three
   documents read as one publication. The structure differs on purpose:
   index.html is a SEQUENCE (install, then run, then play), this is a
-  CHAIN (ten links, each invisible until the one before it works), so the
+  CHAIN (eleven links, each invisible until the one before it works), so
   centrepiece is a tab player over the links rather than numbered scenes.
 
   EVERY code snippet here is real and was read out of the tree, not
@@ -328,21 +328,22 @@
       .gd-term .py-cm { color: #6b7280; font-style: italic; }
       .gd-term .py-fn { color: var(--blue); }
       .gd-term .py-nu { color: var(--amber); }
+      /* Line highlights hug the code rather than spanning the gutter.
+         The obvious inline-block + negative-margin trick double-indents
+         any line that is itself indented, because the span still starts
+         after the leading whitespace in the <pre>. */
+      .gd-term .py-hl,
+      .gd-term .py-ok {
+        border-left: 2px solid;
+        padding: 0 4px 0 5px;
+      }
       .gd-term .py-hl {
-        background: rgba(255, 133, 133, 0.13);
-        border-left: 2px solid var(--red);
-        margin-left: -12px;
-        padding-left: 10px;
-        display: inline-block;
-        width: calc(100% + 24px);
+        background: rgba(255, 133, 133, 0.15);
+        border-left-color: var(--red);
       }
       .gd-term .py-ok {
-        background: rgba(77, 202, 94, 0.1);
-        border-left: 2px solid var(--green);
-        margin-left: -12px;
-        padding-left: 10px;
-        display: inline-block;
-        width: calc(100% + 24px);
+        background: rgba(77, 202, 94, 0.13);
+        border-left-color: var(--green);
       }
 
       /* ══ callouts ═════════════════════════════════════════════════ */
@@ -604,6 +605,86 @@
       }
       @media (max-width: 820px) { .wp-two { grid-template-columns: 1fr; } }
 
+      /* ══ who-does-what pipeline strip ═════════════════════════════
+         Colour code is lifted from manual/agent.html on purpose: blue
+         is the engine, green is our Python, amber is the model. Anyone
+         who read the agent guide already knows how to read this. ══ */
+      .wp-pipe {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        align-items: stretch;
+        margin: 0 0 12px;
+      }
+      .wp-pipe-step {
+        flex: 1 1 130px;
+        border: 1px solid var(--frame-soft);
+        border-top-width: 2px;
+        padding: 7px 9px;
+        font-size: 12px;
+        line-height: 1.4;
+        min-width: 0;
+      }
+      .wp-pipe-step .who {
+        display: block;
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin-bottom: 3px;
+      }
+      .wp-pipe-step .what { color: var(--fg); }
+      .wp-pipe-step .where {
+        display: block;
+        margin-top: 4px;
+        color: var(--dim);
+        font-size: 11px;
+        word-break: break-word;
+      }
+      .wp-pipe-step--py { border-top-color: var(--green); }
+      .wp-pipe-step--py .who { color: var(--green); }
+      .wp-pipe-step--ai { border-top-color: var(--amber); }
+      .wp-pipe-step--ai .who { color: var(--amber); }
+      .wp-pipe-step--en { border-top-color: var(--blue); }
+      .wp-pipe-step--en .who { color: var(--blue); }
+
+      /* ══ doctrine gallery ═════════════════════════════════════════ */
+      .wp-doc {
+        border: 1px solid var(--frame-soft);
+        background: #08070d;
+        padding: 0;
+        margin: 0 0 12px;
+      }
+      .wp-doc-head {
+        display: flex;
+        align-items: baseline;
+        gap: 1ch;
+        padding: 5px 11px;
+        background: var(--panel-raise);
+        border-bottom: 1px solid var(--frame-soft);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        color: var(--dim);
+      }
+      .wp-doc-head .w { text-transform: uppercase; letter-spacing: 0.16em; }
+      .wp-doc-head .w--chaff { color: var(--violet); }
+      .wp-doc-head .w--emp { color: var(--blue); }
+      .wp-doc-head .w--snap { color: var(--amber); }
+      .wp-doc-head .n { margin-left: auto; color: var(--frame); }
+      .wp-doc pre {
+        margin: 0;
+        padding: 10px 12px;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        color: var(--dim);
+        overflow-x: auto;
+      }
+      /* The shouted lines are the load-bearing ones — the doctrine is
+         written so a skim catches the verdict and misses nothing. */
+      .wp-doc pre b { color: var(--fg); font-weight: 500; }
+      .wp-doc pre i { color: var(--red); font-style: normal; }
+
       /* ══ tables ═══════════════════════════════════════════════════ */
       table.gd-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
       table.gd-tbl th, table.gd-tbl td {
@@ -672,11 +753,12 @@
     <nav class="gd-nav" id="gd-nav">
       <a href="#why">[ 00 &middot; WHY NOTHING FIRES ]</a>
       <a href="#chain">[ 01 &middot; THE CHAIN ]</a>
-      <a href="#stages">[ 02 &middot; THE TEN STAGES ]</a>
-      <a href="#economy">[ 03 &middot; THE ECONOMY ]</a>
-      <a href="#ladder">[ 04 &middot; THE LADDER ]</a>
-      <a href="#traps">[ 05 &middot; SILENT TRAPS ]</a>
-      <a href="#map">[ 06 &middot; WHERE THE CODE IS ]</a>
+      <a href="#stages">[ 02 &middot; THE ELEVEN STAGES ]</a>
+      <a href="#doctrine">[ 03 &middot; DOCTRINE ]</a>
+      <a href="#economy">[ 04 &middot; THE ECONOMY ]</a>
+      <a href="#ladder">[ 05 &middot; THE LADDER ]</a>
+      <a href="#traps">[ 06 &middot; SILENT TRAPS ]</a>
+      <a href="#map">[ 07 &middot; WHERE THE CODE IS ]</a>
     </nav>
 
     <section class="gd-hero">
@@ -686,10 +768,11 @@
 
       <p class="gd-lede">
         The shipped agent, <strong>tabula_v12</strong>, has never fired a shot.
-        Not because it is badly written &mdash; because <strong>ten separate
+        Not because it is badly written &mdash; because <strong>eleven separate
         things</strong> have to be true before a single salvo leaves orbit, and
-        the stock fork is missing most of them. This guide walks all ten, in the
-        order they have to be built, with the real code at each one.
+        the stock fork is missing most of them. This guide walks all eleven, in
+        the order they have to be built, showing the real code that is there
+        today and the real code you write next to it.
       </p>
 
       <div class="gd-cta">
@@ -757,7 +840,7 @@
       <!-- ══ 01 ═══════════════════════════════════════════════════ -->
       <section class="gd-scene reveal" id="chain">
         <p class="gd-kicker">01 &middot; The chain</p>
-        <h2>Ten links, four acts</h2>
+        <h2>Eleven links, four acts</h2>
         <p class="gd-lede">
           Every box below has to be true. The status marks are
           <strong>stock tabula_v12 as shipped</strong> &mdash; that is your
@@ -780,20 +863,81 @@
 
       <!-- ══ 02 ═══════════════════════════════════════════════════ -->
       <section class="gd-scene reveal" id="stages">
-        <p class="gd-kicker">02 &middot; The ten stages</p>
+        <p class="gd-kicker">02 &middot; The eleven stages</p>
         <h2>One tab at a time</h2>
         <p class="gd-lede">
-          Each stage says the same four things: <strong>what the agent needs to
-          understand</strong>, <strong>where that lives in the tree</strong>,
-          <strong>how you know it is missing</strong> and
-          <strong>what to change</strong>. Every snippet is real code, copied out
-          of the repo.
+          Each stage says the same things: <strong>what the agent needs to
+          understand</strong>, <strong>how you know it is missing</strong>,
+          <strong>what to change</strong> &mdash; then, side by side,
+          <strong>what is in the tree today</strong> and
+          <strong>what you write</strong>. Every snippet is real code.
         </p>
+
+        <h3>First, who does what</h3>
+        <p class="gd-lede">
+          Worth getting straight before the stages, because the common mental
+          model &mdash; <em>&ldquo;the option is offered, the model picks it,
+          the engine runs it&rdquo;</em> &mdash; skips the step where most of
+          the work happens. Colours follow the
+          <a href="../manual/agent.html">agent guide</a>:
+          <span class="fg-green">green is our Python</span>,
+          <span class="fg-amber">amber is the model</span>,
+          <span class="fg-blue">blue is the engine</span>.
+        </p>
+
+        <div class="wp-pipe">
+          <div class="wp-pipe-step wp-pipe-step--py">
+            <span class="who">Python &middot; stage 7</span>
+            <span class="what">Build the geometry</span>
+            <span class="where">heuristic_chains, seam_control, probe_hints, your own aim resolver</span>
+          </div>
+          <div class="wp-pipe-step wp-pipe-step--py">
+            <span class="who">Python &middot; stages 8&ndash;9</span>
+            <span class="what">Wrap as an Option, and price it</span>
+            <span class="where">agency.build_registry() &rarr; format_menu_block()</span>
+          </div>
+          <div class="wp-pipe-step wp-pipe-step--ai">
+            <span class="who">Model</span>
+            <span class="what">Pick IDs. That is all it does</span>
+            <span class="where">"plan": ["SNAP1", "CH2"]</span>
+          </div>
+          <div class="wp-pipe-step wp-pipe-step--py">
+            <span class="who">Python &middot; stage 10</span>
+            <span class="what">Compile IDs back to wire moves</span>
+            <span class="where">resolve_plan &rarr; pack_recipe &rarr; sanitize_moves</span>
+          </div>
+          <div class="wp-pipe-step wp-pipe-step--en">
+            <span class="who">Engine</span>
+            <span class="what">Resolve the night</span>
+            <span class="where">21 hours, one move per hour, per seat</span>
+          </div>
+        </div>
+
+        <div class="gd-note gd-note--info">
+          <b class="tag">The consequence, and it is liberating</b>
+          <p>
+            The model <strong>never composes a coordinate</strong>. It chooses
+            from a list of pre-computed, pre-validated plays &mdash; the menu
+            header tells it so in as many words. So &ldquo;teach the agent to
+            aim&rdquo; is barely prompt engineering at all: it is writing the
+            Python that decides which cell is worth hitting, then giving the
+            model an honest reason to pick it.
+          </p>
+          <p>
+            Which also means a weapon play is <strong>three separate pieces of
+            work</strong>, not one. Geometry that finds the target (stage 7), a
+            menu entry that offers and prices it (stages 8&ndash;9), and a
+            packer that turns the chosen ID back into a launch on the right hour
+            (stage 10). Miss any one and the other two are invisible.
+          </p>
+        </div>
+
+        <h3>The stages</h3>
 
         <div class="wp-tabs" id="wp-tabs"></div>
         <div class="wp-panel">
           <div class="wp-panel-head">
-            <span class="stage" id="wp-stage">Stage 1 of 10 &middot; money</span>
+            <span class="stage" id="wp-stage">Stage 1 of 11 &middot; the money</span>
             <span class="badge" id="wp-badge">MISSING</span>
             <h3 id="wp-title">&nbsp;</h3>
           </div>
@@ -809,8 +953,10 @@
               <div id="wp-fix"></div>
             </div>
             <div class="wp-col">
-              <p class="wp-h wp-h--first">In the tree</p>
+              <p class="wp-h wp-h--first">In the tree &mdash; what is there today</p>
               <div id="wp-code"></div>
+              <p class="wp-h">What you write</p>
+              <div id="wp-write"></div>
             </div>
           </div>
           <div class="wp-nav">
@@ -822,8 +968,207 @@
       </section>
 
       <!-- ══ 03 ═══════════════════════════════════════════════════ -->
+      <section class="gd-scene reveal" id="doctrine">
+        <p class="gd-kicker">03 &middot; Doctrine, in full</p>
+        <h2>Two kinds, and you need both</h2>
+        <p class="gd-lede">
+          Stage 5 says write doctrine; this is what it looks like. There are
+          <strong>two kinds</strong> and teams routinely write one and wonder
+          why nothing changed. All the text below is real, in the tree, and
+          reaching a model tonight.
+        </p>
+
+        <div class="wp-two">
+          <div class="gd-frame">
+            <div class="gd-frame-head">
+              <span class="gd-frame-title">1 &middot; Weapon doctrine</span>
+              <span class="gd-frame-sub">prose &rarr; the prompt</span>
+            </div>
+            <p>
+              Free text in <code>doctrine.py</code>, gated on holding the
+              weapon. It teaches <b>judgement</b>: what the thing does, when it
+              beats harvesting, at what hour, and &mdash; the part people skip
+              &mdash; when it is <em>wrong</em>.
+            </p>
+            <p class="dim" style="font-size:12.5px;margin:0">
+              Leave out &ldquo;when it is wrong&rdquo; and the model fires it
+              every night, including the rich ones where a weapon that banks
+              nothing is a straight loss.
+            </p>
+          </div>
+          <div class="gd-frame">
+            <div class="gd-frame-head">
+              <span class="gd-frame-title">2 &middot; Move doctrine</span>
+              <span class="gd-frame-sub">data &rarr; the menu</span>
+            </div>
+            <p>
+              A declared play in <code>weapon_plays.py</code>. It teaches
+              <b>a specific move</b>: this weapon, on this board condition, at
+              this hour, aimed by this resolver, borrowing that play's geometry
+              &mdash; plus a <code>why</code> that reaches the menu line.
+            </p>
+            <p class="dim" style="font-size:12.5px;margin:0">
+              Weapon doctrine without a declared play argues for a move the
+              menu cannot offer. A declared play without doctrine is a line the
+              model has no framework to judge.
+            </p>
+          </div>
+        </div>
+
+        <h3>Weapon doctrine &mdash; all three, verbatim</h3>
+        <p class="gd-lede">
+          Note the shared skeleton: a one-line verdict in caps, the mechanics,
+          the cost, then <b>WHEN IT IS WRONG</b>. Shouted lines are the
+          load-bearing ones, so a skim catches the verdict and misses nothing.
+        </p>
+
+        <div class="wp-doc">
+          <div class="wp-doc-head">
+            <span class="w w--snap">SNAP</span>
+            <span>100 blue &middot; one cell &middot; one hour</span>
+            <span class="n">the cheapest one to start with</span>
+          </div>
+          <pre><b>SNAP — THE CHEAPEST INTERDICTION IN THE GAME.
+SPEND A SNAP</b> on the single eye that lights their best target. 100 blue,
+one cell, one hour.
+It kills a probe on that cell and damages a harvester on it — including
+one that <b>ARRIVES</b> during the hour. That last half is what lets a SNAP
+<b>GUARD</b> a square rather than merely punish one.
+It resolves <b>ABOVE</b> the hour-start vision snapshot, so the landing it
+denies is refused <b>TONIGHT</b> rather than delayed. This is the one thing an
+EMP cannot do, and it is why SNAP answers a smash-and-grab.
+<i>WHEN IT IS WRONG:</i> if they can reach the target from a second eye, or
+land from another bearing, you have bought a beat and nothing more.
+Count their eyes before you fire.</pre>
+        </div>
+
+        <div class="wp-doc">
+          <div class="wp-doc-head">
+            <span class="w w--emp">EMP</span>
+            <span>200 blue &middot; 3 missiles &middot; 8 hours</span>
+            <span class="n">the one with friendly fire</span>
+          </div>
+          <pre><b>EMP — AREA DENIAL YOU CAN STAND IN.
+SPEND A CHARGE</b> early or not at all: the cloud runs 8 hours and wants the
+night ahead of it, so past hour 2 there is no night left to exploit.
+One launch fires up to 3 missiles as <b>ONE</b> move and <b>ONE</b> charge — each
+darkens a radius-2 diamond of 13 cells. Probes inside are destroyed;
+harvesters inside are disabled hour by hour. A rival cannot drop into
+cells it cannot see, so a landing under the cloud is <b>REFUSED</b>, not
+delayed.
+A cell is only darkened when a missile lands within its radius, and you
+choose where they land — so aim at least one cell further out than the
+blast reaches and the middle stays clear. That hole is a place only you
+can use for the cloud's whole life.
+<b>FRIENDLY FIRE IS ON.</b> Your own units in the cloud are not immune.
+<i>WHEN IT IS WRONG:</i> darkening ground you wanted to walk. If you have not
+planned a hole to stand in, you have denied yourself as well as them.</pre>
+        </div>
+
+        <div class="wp-doc">
+          <div class="wp-doc-head">
+            <span class="w w--chaff">CHAFF</span>
+            <span>300 blue &middot; no target &middot; 3 hours</span>
+            <span class="n">the one that costs no credits</span>
+          </div>
+          <pre><b>CHAFF — CANCEL THE MOVE, NOT THE PLACE.
+SPEND A CHAFF</b> when you hold one and an hour of theirs is worth more than
+two of yours.
+A chaff is not aimed at a cell. It is aimed at an <b>HOUR</b>: at the hour it
+resolves, every OTHER seat's action that hour is cancelled — their drop,
+their step, their pickup, their probe. The window runs 3 hours, so there
+is no re-try for them inside it.
+<b>THE COST IS SYMMETRIC.</b> You are immune only at the hour you launch,
+because that slot was spent launching. The next two hours cancel <b>YOUR</b>
+moves too. Plan the walk three hours after the flare, never one — a move
+ordered inside your own window is simply cancelled, and the night then
+reads as a failure that was really a mis-plan.
+<i>WHEN IT IS WRONG:</i> if you had a rich walk queued in those hours, you are
+paying 300 blue and two hours to deny one. Take the grab instead.</pre>
+        </div>
+
+        <h3>The correction pattern</h3>
+        <p class="gd-lede">
+          The subtle one. Your fork already ships a <code>BEWARE_</code> block
+          per weapon, written from the <em>defender's</em> side. Once the seat
+          is holding the thing, that block is actively misleading &mdash; so
+          rather than editing it, land a correction <strong>after</strong> it.
+          Recency favours whichever came last.
+        </p>
+        <div class="wp-doc">
+          <div class="wp-doc-head">
+            <span class="w w--chaff">CORRECTION</span>
+            <span>ordered after DOCTRINE_BEWARE_CHAFF</span>
+            <span class="n">fires only when the rack has one</span>
+          </div>
+          <pre><b>CORRECTION TO THE CHAFF BLOCK ABOVE — YOU ARE HOLDING ONE.</b>
+That block is about <b>SURVIVING</b> a rival's chaff, and it describes chaff as
+blind-fired at likely PICKUP hours. That is the defender's view and it
+does not describe the weapon in your rack.
+Fired deliberately, a chaff cancels a <b>SPECIFIC</b> hour you have read: any
+action, not only a pickup. An early flare is not wasted — a drop is an
+action, so an hour-1 chaff cancels an hour-1 <b>DROP</b>.</pre>
+        </div>
+
+        <div class="gd-note gd-note--warn">
+          <b class="tag">Do not pre-lose the argument</b>
+          <p>
+            One reference fork's EMP group header ended
+            <em>&ldquo;and never over a certain pure/mass grab&rdquo;</em>,
+            which reads as a rule rather than a trade. The model then refused
+            the weapon <b>three times out of three</b> with the option sitting
+            right there in the prompt.
+          </p>
+          <p>
+            State the trade honestly in the header and let the per-play
+            <code>why</code> argue the specific case. A header is not the place
+            to settle it.
+          </p>
+        </div>
+
+        <h3>Move doctrine &mdash; one declared play, annotated</h3>
+        <p class="gd-lede">
+          And here is the other kind. Five constraints and a sentence; the
+          sentence is what the model actually reads on the menu line.
+        </p>
+        <div class="wp-src">
+          <span class="path">&hellip;/harnesses/&lt;yours&gt;/weapon_plays.py</span>
+          <span class="sym">PLAYS</span>
+        </div>
+        <div class="gd-term">
+          <pre><span class="k">WeaponPlay</span>(
+    play_id=<span class="s">"BLIND_THE_FINDER"</span>,
+    weapon=<span class="s">"snap"</span>,
+    when=<span class="s">"redsign_theirs"</span>,      <span class="c"># only when a RIVAL lit a pure</span>
+    hour=<span class="s">"super_early"</span>,         <span class="c"># H1 — before their drop lands</span>
+    targets=<span class="s">"finder_probe"</span>,      <span class="c"># the resolver that finds the eye</span>
+    min_targets=<span class="w">1</span>,              <span class="c"># no eye found, no option offered</span>
+    combines_with=<span class="s">"blind_grab"</span>,  <span class="c"># borrows that play's geometry</span>
+    why=(
+        <span class="s">"when a rival has lit a pure we cannot see, the eye that "</span>
+        <span class="s">"found it is the only target we can name; snapping it at "</span>
+        <span class="s">"hour one refuses their drop for lack of live vision, then "</span>
+        <span class="s">"a paired blind-grab combs the smear they can no longer reach"</span>
+    ),
+)</pre>
+        </div>
+
+        <div class="gd-check">
+          <span class="mark">&#10003;</span>
+          <div>
+            Read the <code>why</code> again and notice what it is doing. It
+            does not describe the weapon &mdash; the weapon doctrine did that.
+            It describes <b>this move on this board</b>, names the follow-up
+            that banks the value, and tells the model the denial is only half
+            the play. That is the sentence that turns a zero-yield option into
+            a ranked one.
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 04 ═══════════════════════════════════════════════════ -->
       <section class="gd-scene reveal" id="economy">
-        <p class="gd-kicker">03 &middot; The economy</p>
+        <p class="gd-kicker">04 &middot; The economy</p>
         <h2>What a shot costs</h2>
         <p class="gd-lede">
           You cannot teach an agent when to fire without teaching it what firing
@@ -946,9 +1291,9 @@
         </div>
       </section>
 
-      <!-- ══ 04 ═══════════════════════════════════════════════════ -->
+      <!-- ══ 05 ═══════════════════════════════════════════════════ -->
       <section class="gd-scene reveal" id="ladder">
-        <p class="gd-kicker">04 &middot; The ladder</p>
+        <p class="gd-kicker">05 &middot; The ladder</p>
         <h2>Ask the repo where you are</h2>
         <p class="gd-lede">
           There is a built-in checker. It reads your fork's source &mdash; no
@@ -1016,7 +1361,7 @@
             firing-only. It answers &ldquo;have you built this rung at all&rdquo;,
             never &ldquo;is your implementation any good&rdquo;. A fork can go
             green on all four and still fire into empty space. And nothing in it
-            covers stages <b>1&ndash;3</b> (blue and buying) or stage <b>10</b>
+            covers stages <b>1&ndash;3</b> (blue and buying) or stage <b>11</b>
             (feedback) from this guide.
           </p>
           <p>
@@ -1027,9 +1372,9 @@
         </div>
       </section>
 
-      <!-- ══ 05 ═══════════════════════════════════════════════════ -->
+      <!-- ══ 06 ═══════════════════════════════════════════════════ -->
       <section class="gd-scene reveal" id="traps">
-        <p class="gd-kicker">05 &middot; Silent traps</p>
+        <p class="gd-kicker">06 &middot; Silent traps</p>
         <h2>Four ways to lose an afternoon</h2>
         <p class="gd-lede">
           These all share a property that makes them expensive: they fail
@@ -1118,9 +1463,9 @@
         </div>
       </section>
 
-      <!-- ══ 06 ═══════════════════════════════════════════════════ -->
+      <!-- ══ 07 ═══════════════════════════════════════════════════ -->
       <section class="gd-scene reveal" id="map">
-        <p class="gd-kicker">06 &middot; Where the code is</p>
+        <p class="gd-kicker">07 &middot; Where the code is</p>
         <h2>The file map</h2>
         <p class="gd-lede">
           Everything you will touch lives in your own fork directory, except the
@@ -1135,18 +1480,32 @@
           </div>
           <table class="gd-tbl">
             <tr><th>File</th><th>Stage</th><th>What you do to it</th></tr>
+            <tr><td><code>value_pyramid.py</code></td><td class="num">2</td><td>The blue purity floor and the red-chain guard</td></tr>
             <tr><td><code>orbit.py</code></td><td class="num">3</td><td>Flip <code>weapons_enabled</code> back on</td></tr>
             <tr><td><code>orbit_policy.py</code></td><td class="num">3</td><td>Retune <code>OrbitDials</code>; add a SNAP branch if you want one</td></tr>
-            <tr><td><code>value_pyramid.py</code></td><td class="num">2</td><td>The blue purity floor and the red-chain guard</td></tr>
             <tr><td><code>world_view.py</code></td><td class="num">4</td><td>Carry your own rack into the night view</td></tr>
             <tr><td><code>prompt.py</code></td><td class="num">2, 4</td><td>Say the rack out loud; <code>blue_is_requested()</code></td></tr>
-            <tr><td><code>doctrine.py</code></td><td class="num">5</td><td>Write the offensive case &mdash; when and at what hour</td></tr>
+            <tr><td><code>doctrine.py</code></td><td class="num">2, 5</td><td>The offensive case, the corrections, blue-is-ammo</td></tr>
             <tr><td><code>_v7/chat_schema.py</code></td><td class="num">6</td><td>Widen the verb enum. One line, do it first</td></tr>
-            <tr><td><code>agency.py</code></td><td class="num">7, 8</td><td>Register the weapon play, with detail and rationale</td></tr>
-            <tr><td><code>option_economics.py</code></td><td class="num">8</td><td>Price denial by what the rival loses</td></tr>
-            <tr><td><code>packager.py</code></td><td class="num">9</td><td>Add the <code>_DISPATCH</code> entry and the wire builder</td></tr>
-            <tr><td><code>_v7/move_sanitizer.py</code></td><td class="num">9</td><td>Let the new verb survive the pass</td></tr>
-            <tr><td><code>last_night.py</code></td><td class="num">10</td><td>Read your own fire back &mdash; mind the tag spelling</td></tr>
+            <tr>
+              <td><code>weapon_forge.py</code><span class="dim"> (new)</span></td>
+              <td class="num">7</td>
+              <td>
+                The aim resolvers &mdash; <code>contested_pures()</code>,
+                <code>finder_probes()</code>, <code>rival_eyes()</code>. This is
+                the geometry, and the real work
+              </td>
+            </tr>
+            <tr>
+              <td><code>weapon_plays.py</code><span class="dim"> (new)</span></td>
+              <td class="num">8</td>
+              <td>Move doctrine &mdash; the declared plays and the economy policy</td>
+            </tr>
+            <tr><td><code>agency.py</code></td><td class="num">8, 9</td><td>Register the play; group header; detail and rationale</td></tr>
+            <tr><td><code>option_economics.py</code></td><td class="num">9</td><td>Price denial by what the rival loses</td></tr>
+            <tr><td><code>packager.py</code></td><td class="num">10</td><td>Add the <code>_DISPATCH</code> entry and the wire builder</td></tr>
+            <tr><td><code>_v7/move_sanitizer.py</code></td><td class="num">10</td><td>Let the new verb survive the pass</td></tr>
+            <tr><td><code>last_night.py</code></td><td class="num">11</td><td>Read your own fire back &mdash; mind the tag spelling</td></tr>
           </table>
         </div>
 
@@ -1208,7 +1567,7 @@
             <code>harnesses/tabula_v12/README.md</code>, then give it
             <strong>one stage at a time</strong> and run
             <code>soc weapons</code> between each. Handing it &ldquo;make my
-            agent use weapons&rdquo; produces a large diff touching all ten
+            agent use weapons&rdquo; produces a large diff touching all eleven
             links at once, and when that does not fire you have no idea which
             link is wrong. The ordering is the whole method.
           </p>
@@ -1241,14 +1600,17 @@
       (function () {
         "use strict";
 
-        /* ── the ten stages ──────────────────────────────────────────
+        /* ── the eleven stages ───────────────────────────────────────
            Order is the build order, which is also dependency order:
            nothing here can be observed until everything above it works.
            `act` drives the colour coding; `state` is stock tabula_v12.  */
         const ACTS = {
           money: { label: "Act 1 · The money", who: "can it afford a weapon at all?" },
           know: { label: "Act 2 · The knowledge", who: "does it know what it holds, and when to use it?" },
-          move: { label: "Act 3 · The move", who: "can the intention become a legal order?" },
+          move: {
+            label: "Act 3 · The move",
+            who: "build the geometry → offer it → price it → compile it",
+          },
           back: { label: "Act 4 · The feedback", who: "does it learn what the shot did?" },
         };
 
@@ -1278,15 +1640,15 @@
                       <p>The failure is conceptual and it shows up at
                       settlement: a seat with 900 banked blue and an empty rack
                       spent the season mining a currency it never used.</p>`,
-            fix: `<p>Nothing to code. Read <code>blue_purity_available()</code>
-                  and understand that it sums <em>two</em> pools &mdash; the
-                  numeric bank and the BLUE parcels sitting in the vault &mdash;
-                  because your buying logic in stage 3 has to ask this function,
-                  not guess.</p>`,
+            fix: `<p>No code. Just know that
+                  <code>blue_purity_available()</code> sums <em>two</em> pools
+                  &mdash; the numeric bank and the BLUE parcels in the vault
+                  &mdash; so your buying logic in stage 3 must ask it rather
+                  than read <code>blue_bank</code> and undercount.</p>`,
             code: [
               {
                 path: "sea_of_colours/game/session.py",
-                sym: ":333",
+                sym: "STARTING_BLUE_PURITY",
                 lines: `<span class="py-kw">STARTING_BLUE_PURITY</span>: <span class="py-fn">int</span> = <span class="py-nu">250</span>
 <span class="py-st">"""Fissile stipend every house begins the season with."""</span>`,
               },
@@ -1300,6 +1662,23 @@
         <span class="py-kw">if</span> tile == Tile.BLUE:
             total += self._parcel_purity(r)
     <span class="py-kw">return</span> total`,
+              },
+            ],
+            write: [
+              {
+                path: "\u2026/harnesses/&lt;yours&gt;/ — affordability, done once",
+                sym: "import the price, never copy it",
+                lines: `<span class="py-kw">from</span> sea_of_colours.game.weapons <span class="py-kw">import</span> (
+    BLUE_COST_BY_KIND, CREDIT_COST_BY_KIND, WEAPONISED_BLUE_CAP,
+)
+
+<span class="py-kw">def</span> <span class="py-fn">can_afford</span>(kind, blue, credits, blue_held) -&gt; <span class="py-fn">bool</span>:
+    <span class="py-st">"""Three gates, and forks routinely forget the third."""</span>
+    <span class="py-kw">return</span> (
+        blue &gt;= BLUE_COST_BY_KIND[kind]
+        <span class="py-kw">and</span> credits &gt;= CREDIT_COST_BY_KIND[kind]
+        <span class="py-hl"><span class="py-kw">and</span> blue_held + BLUE_COST_BY_KIND[kind] &lt;= WEAPONISED_BLUE_CAP</span>
+    )`,
               },
             ],
           },
@@ -1336,24 +1715,24 @@
                       <p>Diagnostic: print the menu. If no <code>BL*</code>
                       option is on it, the gate is upstream of wherever you
                       edited.</p>`,
-            fix: `<p>Build the loop that does not exist: when the rack is empty
-                  and blue is short, <em>raise</em> blue's rank rather than
-                  merely offering it. That means touching
-                  <code>value_pyramid.py</code> and <code>prompt.py</code>
-                  together, and writing the doctrine line that licenses it.</p>
-                  <p>Be honest about the cost &mdash; a harvester on blue is a
-                  harvester not on red, and red is what scores.</p>`,
+            fix: `<p>The cleanest fix is doctrine, not dials: tell the model
+                  that while the rack is empty, blue <em>is</em> the reload, and
+                  let it weigh that against a red chain itself.</p>
+                  <p>Note the example opposite reverses once you hold a charge.
+                  Blue banks no second weapon that night, so red outranks it
+                  again &mdash; a permanent &ldquo;blue is great&rdquo; rule
+                  would cost you red all season.</p>`,
             code: [
               {
-                path: "…/harnesses/tabula_v12/prompt.py",
+                path: "\u2026/harnesses/tabula_v12/prompt.py",
                 sym: "blue_is_requested()",
                 lines: `<span class="py-kw">def</span> <span class="py-fn">blue_is_requested</span>(agent_view) -&gt; <span class="py-fn">bool</span>:
     <span class="py-st">"""Should tonight's menu force-surface a blue grab?
 
     Note what this does NOT do — it does not outrank
-    anything. It only puts a \`\`BL*\`\` on the menu; whether
-    the unit is better spent on red is the agent's call,
-    and doctrine says red wins ties.
+    anything. It only puts a BL* on the menu; whether the
+    unit is better spent on red is the agent's call, and
+    doctrine says red wins ties.
     """</span>
     <span class="py-kw">if not</span> <span class="py-fn">blue_vault_is_short</span>(agent_view):
         <span class="py-kw">return False</span>
@@ -1362,10 +1741,32 @@
     <span class="py-kw">return</span> <span class="py-fn">len</span>(<span class="py-fn">_orbit_harvester_ids</span>(agent_view)) &gt;= <span class="py-nu">2</span>`,
               },
               {
-                path: "…/harnesses/tabula_v12/value_pyramid.py",
-                sym: ":63",
+                path: "\u2026/harnesses/tabula_v12/value_pyramid.py",
+                sym: ":63 — two of the five levers",
                 lines: `<span class="py-hl">_BLUE_GRAB_MIN = <span class="py-nu">192</span></span>        <span class="py-cm"># purity floor before blue is offered</span>
 <span class="py-hl">_STRONG_CHAIN_RED_MIN = <span class="py-nu">150</span></span> <span class="py-cm"># blue must not cost a strong red chain</span>`,
+              },
+            ],
+            write: [
+              {
+                path: "\u2026/harnesses/&lt;yours&gt;/doctrine.py",
+                sym: "DOCTRINE — blue is ammunition",
+                lines: `<span class="py-cm"># Lands AFTER the block that ranks blue below red, so</span>
+<span class="py-cm"># recency favours the correction.</span>
+_DOCTRINE_BLUE_IS_AMMO = <span class="py-st">"""\\
+CORRECTION — YOU SPEND BLUE, SO BLUE IS AMMUNITION.
+The block above ranks blue below red because most agents
+bank blue and never use it. You are not most agents: your
+ordnance is bought with blue, and it is how you take a
+rival's best night off them.
+So while your rack is EMPTY, a BL* is not a consolation
+prize for an idle harvester — it is the reload. Weigh it
+against a red chain on that basis rather than on tonight's
+points alone.
+Once you HOLD a charge this reverses: you have your round,
+blue banks no further weapon this night, and red outranks
+it again exactly as above.
+"""</span>`,
               },
             ],
           },
@@ -1382,49 +1783,59 @@
                    LLM-driven; the <b>orbit phase is a heuristic</b>. It is
                    ordinary code reading credits, blue and fleet size, and
                    emitting a list of purchases. The model is never consulted.</p>
-                   <p>The dials are hoisted into one frozen dataclass at the top
-                   of <code>orbit_policy.py</code> precisely so a fork can retune
-                   its own economy without touching anything shared. Retuning
-                   <code>blue_always_build</code> alone decides whether your seat
-                   is ever armed before night three.</p>
-                   <p>Note the shipped policy never buys SNAP at all, even though
-                   the engine supports <code>build_snap</code> &mdash; and SNAP
-                   is the cheapest weapon at 100 blue, so it is the likeliest
-                   first one you want.</p>`,
+                   <p>The dials sit in one frozen dataclass at the top of
+                   <code>orbit_policy.py</code> precisely so a fork can retune
+                   its own economy without touching anything shared.</p>
+                   <p>Note the shipped policy never buys SNAP at all, even
+                   though the engine supports it &mdash; and SNAP is the
+                   cheapest weapon at 100 blue, so it is the likeliest first one
+                   you want.</p>`,
             symptom: `<p>Trivially visible: the rack is empty every night. Check
                       the orbit card, or read <code>weapon_stock</code> in the
                       view.</p>
                       <p>The stock fork ships with the switch explicitly
-                      <b>off</b> &mdash; one argument in <code>orbit.py</code>
-                      &mdash; so this is a one-line change to start, and a dial
-                      exercise thereafter.</p>`,
-            fix: `<p>Flip <code>weapons_enabled=<b>True</b></code> in
-                  <code>orbit.py</code>, then tune the dials. Add a SNAP branch
-                  if you want the cheap one.</p>
-                  <p><b>But not before stage 9 works.</b> Buying without firing
+                      <b>off</b> &mdash; one argument in <code>orbit.py</code>.</p>`,
+            fix: `<p>Flip the switch, then set caps that respect the 600 cap as
+                  <em>one budget</em> rather than three independent numbers.</p>
+                  <p><b>But not before stage 10 works.</b> Buying without firing
                   is strictly worse than stock, because every 250-credit charge
                   is a probe you did not build.</p>`,
             code: [
               {
-                path: "…/harnesses/tabula_v12/orbit_policy.py",
-                sym: "OrbitDials",
-                lines: `<span class="py-kw">@dataclass</span>(frozen=<span class="py-kw">True</span>)
-<span class="py-kw">class</span> <span class="py-fn">OrbitDials</span>:
-    probe_target_stock: <span class="py-fn">int</span> = <span class="py-nu">4</span>
-    <span class="py-hl">blue_always_build: <span class="py-fn">int</span> = <span class="py-nu">300</span></span>   <span class="py-cm"># build freely above this</span>
-    <span class="py-hl">blue_emp_roll: <span class="py-fn">int</span> = <span class="py-nu">250</span></span>       <span class="py-cm"># 50/50 roll in the band below</span>
-    emp_roll_chance: <span class="py-fn">float</span> = <span class="py-nu">0.5</span>
-    emp_stockpile_cap: <span class="py-fn">int</span> = <span class="py-nu">2</span>
-    chaff_stockpile_cap: <span class="py-fn">int</span> = <span class="py-nu">1</span>
-    harvester_cap: <span class="py-fn">int</span> = <span class="py-nu">3</span>
-    <span class="py-cm"># prices below are fallbacks; the engine's win</span>`,
-              },
-              {
-                path: "…/harnesses/tabula_v12/orbit.py",
+                path: "\u2026/harnesses/tabula_v12/orbit.py",
                 sym: ":160 — the one-line switch",
                 lines: `<span class="py-hl">actions, rationale = <span class="py-fn">plan_orbit_actions</span>(
     agent_view, weapons_enabled=<span class="py-kw">False</span>,   <span class="py-cm"># ← change me</span>
 )</span>`,
+              },
+              {
+                path: "\u2026/harnesses/tabula_v12/orbit_policy.py",
+                sym: "OrbitDials",
+                lines: `<span class="py-kw">@dataclass</span>(frozen=<span class="py-kw">True</span>)
+<span class="py-kw">class</span> <span class="py-fn">OrbitDials</span>:
+    probe_target_stock: <span class="py-fn">int</span> = <span class="py-nu">4</span>
+    blue_always_build: <span class="py-fn">int</span> = <span class="py-nu">300</span>   <span class="py-cm"># build freely above this</span>
+    blue_emp_roll: <span class="py-fn">int</span> = <span class="py-nu">250</span>       <span class="py-cm"># 50/50 roll in the band below</span>
+    emp_stockpile_cap: <span class="py-fn">int</span> = <span class="py-nu">2</span>
+    chaff_stockpile_cap: <span class="py-fn">int</span> = <span class="py-nu">1</span>`,
+              },
+            ],
+            write: [
+              {
+                path: "\u2026/harnesses/&lt;yours&gt;/weapon_plays.py",
+                sym: "an economy declared as one budget",
+                lines: `<span class="py-cm"># The three caps must be read as ONE budget: EMP is 200</span>
+<span class="py-cm"># blue, chaff 300, snap 100, and the cap is 600. One of</span>
+<span class="py-cm"># each is 600 exactly — there is no room for a second</span>
+<span class="py-cm"># charge of anything, so every cap here is 1. The stock</span>
+<span class="py-cm"># emp_stockpile_cap = 2 was 400 blue of intent against a</span>
+<span class="py-cm"># ceiling that could never pay for it.</span>
+ECONOMY = <span class="py-fn">EconomyPolicy</span>(
+    buy_asap=<span class="py-kw">True</span>,
+    <span class="py-hl">never_buy_what_you_cannot_fire=<span class="py-kw">True</span>,  <span class="py-cm"># the stage-10 guard</span></span>
+    hold_at={<span class="py-st">"emp"</span>: <span class="py-nu">1</span>, <span class="py-st">"chaff"</span>: <span class="py-nu">1</span>, <span class="py-st">"snap"</span>: <span class="py-nu">1</span>},
+    seek_blue_always=<span class="py-kw">True</span>,
+)`,
               },
             ],
           },
@@ -1446,8 +1857,8 @@
                    <code>weapon_stock</code> is the buying code, which runs in
                    orbit and cannot influence a night.</p>
                    <p>So the agent is comprehensively briefed on what might be
-                   shot at it, and completely ignorant of what it can shoot
-                   back with.</p>`,
+                   shot at it, and completely ignorant of what it can shoot back
+                   with.</p>`,
             symptom: `<p><code>soc weapons</code> rung 1 fails with
                       &ldquo;only the buying code reads
                       <code>weapon_stock</code>&rdquo;.</p>
@@ -1456,13 +1867,14 @@
                       <code>card.py</code> &mdash; buying code reads the rack by
                       construction, and printing it on a diagnostic is not the
                       night phase knowing it.</p>`,
-            fix: `<p>Carry the counts into <code>world_view.py</code> and say
-                  them in <code>prompt.py</code>. One line of prose is enough to
-                  start: <em>&ldquo;YOUR RACK: 1 EMP, 0 chaff, 2 SNAP.&rdquo;</em></p>
+            fix: `<p>Emit a rack block into the prompt. Say the count, the
+                  price and <em>what one charge does</em>, because the number
+                  alone is not actionable.</p>
+                  <p>Stay silent on an empty rack &mdash; a line reading
+                  &ldquo;chaff 0&rdquo; is noise on most nights and invites the
+                  model to reason about a weapon it cannot fire.</p>
                   <p>Do this first. It is the cheapest change on the ladder and
-                  the result is immediately visible on the turn card, which
-                  makes it the best possible confidence-builder before the
-                  harder stages.</p>`,
+                  it shows up immediately on the turn card.</p>`,
             code: [
               {
                 path: "sea_of_colours/snowpark/view.py",
@@ -1484,6 +1896,36 @@ agent_view[<span class="py-st">"orbit"</span>][<span class="py-st">"weapon_specs
 _BUYING_FILES = (<span class="py-st">"orbit.py"</span>, <span class="py-st">"orbit_policy.py"</span>, <span class="py-st">"card.py"</span>)`,
               },
             ],
+            write: [
+              {
+                path: "\u2026/harnesses/&lt;yours&gt;/prompt.py",
+                sym: "format_rack_block()",
+                lines: `<span class="py-kw">def</span> <span class="py-fn">format_rack_block</span>(agent_view) -&gt; <span class="py-fn">str</span>:
+    <span class="py-st">"""Silent on an empty rack — "chaff 0" is just noise."""</span>
+    lines = []
+    <span class="py-kw">for</span> w <span class="py-kw">in</span> (<span class="py-st">"chaff"</span>, <span class="py-st">"emp"</span>, <span class="py-st">"snap"</span>):
+        n = <span class="py-fn">_stock</span>(agent_view, w)
+        <span class="py-kw">if</span> n &lt;= <span class="py-nu">0</span>:
+            <span class="py-kw">continue</span>
+        lines.append(<span class="py-fn">_ONE_LINER</span>[w].format(n=n, cost=<span class="py-fn">_blue_cost</span>(w)))
+    <span class="py-kw">if not</span> lines:
+        <span class="py-kw">return</span> <span class="py-st">""</span>
+    <span class="py-kw">return</span> <span class="py-st">"\\n"</span>.join(
+        [<span class="py-st">"YOUR RACK (bought in orbit — spending it is a NIGHT move):"</span>]
+        + lines
+    )`,
+              },
+              {
+                path: "what the model then reads in its prompt",
+                sym: "the whole of rung 1",
+                lines: `<span class="py-ok">YOUR RACK (bought in orbit — spending it is a NIGHT move):</span>
+  SNAP x2 (100 blue each) — one cell, one hour. Kills the
+  eye on it and catches a harvester that ARRIVES that hour.
+  EMP x1 (200 blue each) — one charge fires 3 missiles as
+  ONE move; each darkens 13 cells for 8h. Probes inside
+  die, harvesters are disabled. FRIENDLY FIRE IS ON.`,
+              },
+            ],
           },
 
           {
@@ -1494,41 +1936,51 @@ _BUYING_FILES = (<span class="py-st">"orbit.py"</span>, <span class="py-st">"orb
             say: `Every word of doctrine in the shipped fork is about
                   <span class="q">surviving</span> a weapon. None is about
                   <span class="q">using</span> one.`,
-            body: `<p>Doctrine is the judgement layer &mdash; the menu is a list,
-                   doctrine is the reason to reach for one item on it. The stock
-                   fork ships three solid blocks:
+            body: `<p>Doctrine is the judgement layer &mdash; the menu is a
+                   list, doctrine is the reason to reach for one item on it. The
+                   stock fork ships three solid blocks, all defensive:
                    <code>DOCTRINE_BEWARE_EMP</code>,
                    <code>DOCTRINE_BEWARE_CHAFF</code>,
-                   <code>DOCTRINE_BEWARE_SNAP</code>. All defensive.</p>
-                   <p>What is missing is the offensive case, and it has two
-                   halves that teams usually conflate:</p>
+                   <code>DOCTRINE_BEWARE_SNAP</code>.</p>
+                   <p>Good offensive doctrine has four moving parts, and the
+                   fourth is the one people leave out:</p>
                    <ul>
-                     <li><b>When</b> &mdash; under what board condition does
-                         denying a rival beat banking cargo yourself?</li>
-                     <li><b>At what hour</b> &mdash; which is not decoration.
-                         An EMP cloud runs 8h and wants the night ahead of it,
-                         so past about hour 2 it has no night left to exploit.
-                         A chaff's 3h window has to land on the hour the rival
-                         was going to act. A SNAP lasts an hour and can be aimed
-                         at any beat.</li>
-                   </ul>`,
+                     <li><b>What it does</b> &mdash; mechanically, in the
+                         agent's own terms</li>
+                     <li><b>When to spend it</b> &mdash; the board condition</li>
+                     <li><b>At what hour</b> &mdash; a hard constraint, not
+                         decoration: an 8h EMP cloud wants the night ahead of
+                         it, so past hour 2 it has no night left to exploit</li>
+                     <li><b>When it is wrong</b> &mdash; without this the model
+                         fires it every night, and a weapon that banks nothing
+                         fired on a rich night is a straight loss</li>
+                   </ul>
+                   <p>Gate it on <em>your own rack</em>. Every BEWARE_ block
+                   fires on the threat side, which is why V12 says nothing about
+                   spending ordnance on a quiet board &mdash; precisely the
+                   cheapest night to fire.</p>`,
             symptom: `<p>Rung 4 fails with &ldquo;doctrine covers surviving
-                      chaff, emp, snap, never using them&rdquo;.</p>
-                      <p>The checker is looking for text that tells the seat to
-                      <em>spend its own ordnance</em>, and it deliberately
-                      ignores anything where the rival is the subject &mdash;
-                      &ldquo;if they launch an EMP&rdquo; is survival advice,
-                      which you already ship.</p>`,
-            fix: `<p>Write the offensive block in <code>doctrine.py</code> and
-                  gate it on actually holding the weapon. Name the hour.</p>
-                  <p>Sequencing note: doctrine is rung 4 of 4 for a reason.
-                  Written before the menu carries a weapon play, it refers to
-                  options that do not exist, and changes nothing you can
-                  observe.</p>`,
+                      chaff, emp, snap, never using them&rdquo;. The checker
+                      looks for text telling the seat to <em>spend its own
+                      ordnance</em>, and ignores anything where the rival is the
+                      subject.</p>
+                      <p>The subtler symptom, once you have written some: the
+                      model reads a group header that says &ldquo;never over a
+                      certain grab&rdquo; and refuses the weapon every time. You
+                      pre-lost the argument in the header.</p>`,
+            fix: `<p>Write the offensive block, gated on holding the weapon,
+                  and add a <b>correction block</b> that lands after the
+                  defensive one it answers &mdash; recency favours whichever
+                  came last.</p>
+                  <p>Doctrine is rung 4 of 4 for a reason. Written before the
+                  menu carries a weapon play it refers to options that do not
+                  exist, and changes nothing you can observe.</p>
+                  <p>Three full examples are in
+                  <a href="#doctrine">&sect;03 below &darr;</a>.</p>`,
             code: [
               {
-                path: "…/harnesses/tabula_v12/doctrine.py",
-                sym: "what ships — defensive",
+                path: "\u2026/harnesses/tabula_v12/doctrine.py",
+                sym: "what ships — defensive only",
                 lines: `DOCTRINE_BEWARE_SNAP = <span class="py-st">"""\\
 OPPONENT WEAPONS — beware_snap (one square, taken off
 you first):
@@ -1540,17 +1992,42 @@ you first):
 """</span>`,
               },
               {
-                path: "…/harnesses/&lt;yours&gt;/doctrine.py",
-                sym: "what is missing — the shape of it",
-                lines: `<span class="py-cm"># The two things it has to say, and neither is geometry:</span>
-<span class="py-cm">#</span>
-<span class="py-cm">#   WHEN  a rival's whole seam runs off one probe, killing</span>
-<span class="py-cm">#         that eye is worth more than any chain you can</span>
-<span class="py-cm">#         bank the same hour.</span>
-<span class="py-cm">#</span>
-<span class="py-cm">#   HOUR  fire the EMP in the first two hours or not at</span>
-<span class="py-cm">#         all — an 8h cloud lit at H16 has no night left</span>
-<span class="py-cm">#         to deny.</span>`,
+                path: "\u2026/harnesses/&lt;armed fork&gt;/weapon_forge.py",
+                sym: "doctrine_for() — gate on your OWN rack",
+                lines: `<span class="py-kw">def</span> <span class="py-fn">doctrine_for</span>(agent_view) -&gt; <span class="py-fn">str</span>:
+    <span class="py-st">"""Doctrine for the weapons THIS SEAT is holding.
+
+    Note the gate polarity. Every BEWARE_ block fires on
+    the THREAT side, which is why V12 says nothing about
+    spending ordnance on a quiet board — precisely the
+    cheapest night to fire.
+    """</span>
+    held = [p.weapon <span class="py-kw">for</span> p <span class="py-kw">in</span> PLAYS <span class="py-kw">if</span> <span class="py-fn">_stock</span>(agent_view, p.weapon) &gt; <span class="py-nu">0</span>]
+    <span class="py-kw">return</span> <span class="py-st">"\\n\\n"</span>.join(
+        <span class="py-fn">_DOCTRINE</span>[w] <span class="py-kw">for</span> w <span class="py-kw">in</span> <span class="py-fn">dict</span>.fromkeys(held) <span class="py-kw">if</span> <span class="py-fn">_DOCTRINE</span>.get(w)
+    )`,
+              },
+            ],
+            write: [
+              {
+                path: "\u2026/harnesses/&lt;yours&gt;/doctrine.py",
+                sym: "SNAP — the shortest of the three",
+                lines: `<span class="py-st">"""\\
+SNAP — THE CHEAPEST INTERDICTION IN THE GAME.
+SPEND A SNAP on the single eye that lights their best
+target. 100 blue, one cell, one hour.
+It kills a probe on that cell and damages a harvester on
+it — including one that ARRIVES during the hour. That last
+half is what lets a SNAP GUARD a square rather than merely
+punish one.
+It resolves ABOVE the hour-start vision snapshot, so the
+landing it denies is refused TONIGHT rather than delayed.
+This is the one thing an EMP cannot do, and it is why SNAP
+answers a smash-and-grab.
+WHEN IT IS WRONG: if they can reach the target from a
+second eye, or land from another bearing, you have bought
+a beat and nothing more. Count their eyes before you fire.
+"""</span>`,
               },
             ],
           },
@@ -1558,7 +2035,7 @@ you first):
           {
             act: "move",
             state: "no",
-            short: "The schema",
+            short: "The vocabulary",
             title: "The reply format needs to allow the word",
             say: `The model is <span class="q">physically unable</span> to say
                   &ldquo;fire&rdquo;. One line of JSON schema forbids it.`,
@@ -1580,21 +2057,35 @@ you first):
                       validation, or the verb is silently dropped, and you spend
                       an hour reading prompt text that was never the
                       problem.</p>`,
-            fix: `<p>Add your verbs to the enum. It is one line, it is the
-                  cheapest thing on the ladder to verify, and it must go
-                  first.</p>`,
+            fix: `<p>Widen the enum. One line, cheapest thing on the ladder to
+                  verify, and it must go first.</p>
+                  <p>Include <code>wait</code> while you are there &mdash; the
+                  packager needs it to pad a launch onto the hour it was
+                  designed for, which is stage 10.</p>`,
             code: [
               {
-                path: "…/harnesses/tabula_v12/_v7/chat_schema.py",
+                path: "\u2026/harnesses/tabula_v12/_v7/chat_schema.py",
                 sym: ":43 — the whole gate",
                 lines: `<span class="py-hl"><span class="py-st">"a"</span>: {<span class="py-st">"type"</span>: <span class="py-st">"string"</span>, <span class="py-st">"enum"</span>: [<span class="py-st">"drop"</span>, <span class="py-st">"step"</span>, <span class="py-st">"pickup"</span>, <span class="py-st">"probe"</span>]},</span>`,
               },
               {
                 path: "sea_of_colours/game/policy.py",
                 sym: "what the engine actually takes",
-                lines: `<span class="py-ok"><span class="py-st">"emp_launch"</span>, <span class="py-st">"chaff_flare"</span>, <span class="py-st">"snap_launch"</span></span>
+                lines: `<span class="py-ok"><span class="py-st">"emp_launch"</span>, <span class="py-st">"chaff_flare"</span>, <span class="py-st">"snap_launch"</span>, <span class="py-st">"wait"</span></span>
 <span class="py-cm"># The engine has always accepted these. The harness</span>
 <span class="py-cm"># simply never offered the model the words.</span>`,
+              },
+            ],
+            write: [
+              {
+                path: "\u2026/harnesses/&lt;yours&gt;/_v7/chat_schema.py",
+                sym: "the widened enum",
+                lines: `<span class="py-ok"><span class="py-st">"a"</span>: {<span class="py-st">"type"</span>: <span class="py-st">"string"</span>, <span class="py-st">"enum"</span>: [
+    <span class="py-st">"drop"</span>, <span class="py-st">"step"</span>, <span class="py-st">"pickup"</span>, <span class="py-st">"probe"</span>, <span class="py-st">"wait"</span>,
+    <span class="py-st">"emp_launch"</span>, <span class="py-st">"chaff_flare"</span>, <span class="py-st">"snap_launch"</span>,
+]},</span>
+<span class="py-cm"># "at" already accepts a list of cells, which is the</span>
+<span class="py-cm"># shape emp_launch wants. chaff_flare carries no target.</span>`,
               },
             ],
           },
@@ -1602,35 +2093,129 @@ you first):
           {
             act: "move",
             state: "no",
-            short: "The menu + geometry",
-            title: "The planner needs a weapon play, with real aim points",
-            say: `The model picks from an enumerated list. An absent option is
-                  <span class="q">an unthinkable move</span>.`,
-            body: `<p>Every turn the harness builds a menu of concrete plays with
-                   pre-computed geometry, and the model chooses among them. The
-                   registry offers seams, hot drops, probes, chains, supersedes
-                   and grabs. Nothing offensive.</p>
-                   <p>Building a weapon play means computing real aim points:
-                   which rival probes are freshest, where their seam is, which
-                   single eye is lighting their beacon, which pure cell of yours
-                   a rival can also see. That is genuine work and it is the
-                   substance of the exercise.</p>
-                   <p>The armed forks factor it into four declared axes, which is
-                   a good structure to borrow: <b>when</b> (the board condition),
-                   <b>hour</b> (position in the list <em>is</em> the hour),
-                   <b>combines-with</b> (whose geometry it borrows, so the option
-                   is not an orphan with coordinates nobody computed), and
-                   <b>targets</b> (where the aim points come from).</p>`,
-            symptom: `<p>Rung 2 fails with &ldquo;no option in agency.py emits
-                      one&rdquo;. The menu block in the prompt has no weapon
-                      section.</p>`,
-            fix: `<p>Register the play in <code>build_registry()</code>. Give it
-                  a <code>kind</code> the packager will recognise in stage 9, and
-                  compute the aim cells from live intel rather than a constant.</p>`,
+            short: "Build the geometry",
+            title: "Python must compute the aim points before the menu exists",
+            say: `The model never invents coordinates. Every option is
+                  <span class="q">pre-computed, pre-validated geometry</span>
+                  that heuristic Python built before the prompt was written.`,
+            body: `<p>This is the stage most descriptions of the pipeline skip,
+                   and it is where the real work lives. Long before any prompt
+                   is assembled, a set of <b>candidate generators</b> run over
+                   the board and produce concrete cells: chains, seam campaigns,
+                   probe placements, supersedes, frontier pushes.</p>
+                   <p>A weapon play needs the same treatment, and the question
+                   is always the same: <em>which cell, and why that one?</em>
+                   Two aim resolvers worth stealing:</p>
+                   <ul>
+                     <li><b>The contested pure</b> &mdash; a pure cell you can
+                         see that a rival eye also covers. The one cell whose
+                         occupation is <em>predictable</em>, because they will
+                         smash-and-grab it at hour one.</li>
+                     <li><b>The finder probe</b> &mdash; when a rival has lit a
+                         pure you cannot see, the single eye that found it is
+                         the only target you can name.</li>
+                   </ul>
+                   <p>Why a pure and nothing else: a SNAP guards one cell for
+                   one hour, so it only pays if you know where they will be. You
+                   cannot predict a step, a probe or a pickup. You <em>can</em>
+                   predict a pure. Aiming anywhere else is a guess.</p>`,
+            symptom: `<p>Silent and total: the option is never built, so it is
+                      never offered, and nothing logs a reason. A play with a
+                      resolver that returns zero targets simply does not
+                      appear.</p>
+                      <p>Worse, the resolver can be reading a view key that does
+                      not exist. Three target modes once resolved zero eyes on
+                      every board because the code read
+                      <code>enemy_probes</code> and the view publishes neither
+                      that nor <code>rival_probes</code>.</p>`,
+            fix: `<p>Write the resolver, and <b>log what it found even when it
+                  found nothing</b>. Return notes alongside targets so a dead
+                  resolver announces itself.</p>
+                  <p>Then assert on a real board in a test. A resolver that
+                  compiles is not a resolver that fires.</p>`,
             code: [
               {
-                path: "…/harnesses/tabula_v12/agency.py",
-                sym: "Option — what a play has to fill in",
+                path: "\u2026/harnesses/tabula_v12/harness.py",
+                sym: ":382 — candidate generation, before any prompt",
+                lines: `<span class="py-cm"># 4. Precompute the hint menu — all of this is geometry,</span>
+<span class="py-cm">#    and all of it runs before the model is called.</span>
+chain_hints = chain_filter.<span class="py-fn">dedupe_and_floor</span>(
+    heuristic_chains.<span class="py-fn">top_chain_hints</span>(agent_view, max_chains=<span class="py-nu">8</span>),
+)[:<span class="py-nu">5</span>]
+seam_patterns = seam_control.<span class="py-fn">build_seam_menu</span>(
+    agent_view, hot_drop_hints, seat_index=seat_index,
+)
+<span class="py-cm"># ...probe_hints, supersede, frontier, snap_cover, speculative</span>
+<span class="py-hl">option_registry = agency.<span class="py-fn">build_registry</span>(   <span class="py-cm"># ← consumes them</span></span>
+    agent_view=agent_view, seam_patterns=seam_patterns, ...
+)`,
+              },
+            ],
+            write: [
+              {
+                path: "\u2026/harnesses/&lt;yours&gt;/weapon_forge.py",
+                sym: "contested_pures() — an aim resolver",
+                lines: `<span class="py-kw">def</span> <span class="py-fn">contested_pures</span>(agent_view):
+    <span class="py-st">"""Pures WE can see that a rival eye ALSO covers.
+
+    A snap guards ONE cell for ONE hour, so it only pays if
+    you know where they are going to be. You cannot predict
+    a step, a probe or a pickup. You CAN predict a pure —
+    it is the one cell worth a smash-and-grab, so that is
+    where they land. Aiming anywhere else is a guess;
+    aiming at a contested pure is a read.
+
+    Returns ([(cell, n_rival_eyes), ...], notes), most
+    watched first: the more eyes, the surer the drop.
+    """</span>
+    notes = []
+    eyes = [<span class="py-fn">tuple</span>(r[<span class="py-st">"at"</span>]) <span class="py-kw">for</span> r <span class="py-kw">in</span> <span class="py-fn">rival_eyes</span>(agent_view)]
+    <span class="py-kw">if not</span> eyes:
+        <span class="py-hl">notes.append(<span class="py-st">"no rival eyes on the view"</span>)  <span class="py-cm"># say so!</span></span>
+        <span class="py-kw">return</span> [], notes
+    ...`,
+              },
+            ],
+          },
+
+          {
+            act: "move",
+            state: "no",
+            short: "Offer it",
+            title: "The play must reach the menu the model reads",
+            say: `The model picks from an enumerated list by ID. An absent
+                  option is <span class="q">an unthinkable move</span>.`,
+            body: `<p>With geometry in hand, the registry wraps each candidate
+                   in an <code>Option</code>: an ID, a menu label, the
+                   pre-filled geometry in <code>payload</code>, and the recipe
+                   text in <code>execute_lines</code>. Then
+                   <code>format_menu_block()</code> renders it into the prompt.</p>
+                   <p>The model's entire job at this point is to return a list
+                   of IDs. It never composes coordinates &mdash; the menu header
+                   tells it so explicitly.</p>
+                   <p>Declaring a play is where the four axes come in, and each
+                   is a real constraint rather than metadata: <b>when</b> (the
+                   board condition), <b>hour</b> (position in the move list
+                   <em>is</em> the hour), <b>combines-with</b> (whose geometry
+                   it borrows, so the option is not an orphan) and
+                   <b>targets</b> (which resolver from stage 7 supplies the aim
+                   points).</p>`,
+            symptom: `<p>Rung 2 fails with &ldquo;no option in agency.py emits
+                      one&rdquo;. The menu block in the prompt has no weapon
+                      section at all.</p>
+                      <p>Or the group header pre-loses the argument. One
+                      reference fork's EMP blurb ended &ldquo;and never over a
+                      certain pure/mass grab&rdquo;, and the model then refused
+                      the weapon three times out of three with the option right
+                      there in the prompt.</p>`,
+            fix: `<p>Register the play, give it a <code>kind</code> the
+                  packager will recognise in stage 10, and write a group header
+                  that states the trade <b>honestly</b> rather than settling
+                  it.</p>`,
+            code: [
+              {
+                path: "\u2026/harnesses/tabula_v12/agency.py",
+                sym: "Option — what a play fills in",
                 lines: `<span class="py-kw">@dataclass</span>
 <span class="py-kw">class</span> <span class="py-fn">Option</span>:
     <span class="py-st">"""A single selectable option with pre-filled geometry."""</span>
@@ -1639,26 +2224,51 @@ you first):
     title: <span class="py-fn">str</span>      <span class="py-cm"># compact menu label</span>
     detail: <span class="py-fn">str</span>     <span class="py-cm"># "when to pick me"</span>
     execute_lines: List[<span class="py-fn">str</span>] = field(default_factory=<span class="py-fn">list</span>)
-    payload: Dict[<span class="py-fn">str</span>, Any] = field(default_factory=<span class="py-fn">dict</span>)
-    <span class="py-hl">rationale: <span class="py-fn">str</span> = <span class="py-st">""</span>  <span class="py-cm"># WHY — see stage 8</span></span>`,
+    <span class="py-hl">payload: Dict[<span class="py-fn">str</span>, Any] = field(default_factory=<span class="py-fn">dict</span>)  <span class="py-cm"># geometry</span></span>
+    rationale: <span class="py-fn">str</span> = <span class="py-st">""</span>   <span class="py-cm"># WHY — see stage 9</span>`,
               },
               {
-                path: "…/harnesses/&lt;armed fork&gt;/weapon_forge.py",
-                sym: "the four axes",
-                lines: `<span class="py-cm"># WHEN — the board condition. Becomes the predicate.</span>
-WHEN_CHOICES = (
-    <span class="py-st">"always"</span>, <span class="py-st">"redsign_mine"</span>, <span class="py-st">"redsign_theirs"</span>,
-    <span class="py-st">"no_redsign"</span>, <span class="py-st">"other"</span>,
-)
-<span class="py-cm"># HOUR — position in the move list IS the hour, so this</span>
-<span class="py-cm"># is a hard constraint, not a preference.</span>
-HOUR_CHOICES = {<span class="py-st">"super_early"</span>: <span class="py-nu">1</span>, <span class="py-st">"early"</span>: <span class="py-nu">2</span>,
-                <span class="py-st">"mid"</span>: <span class="py-nu">8</span>, <span class="py-st">"late"</span>: <span class="py-nu">16</span>}
-<span class="py-cm"># TARGETS — where the aim points come from.</span>
-TARGETS_CHOICES = (
-    <span class="py-st">"pattern"</span>, <span class="py-st">"rival_probes"</span>, <span class="py-st">"redsign"</span>,
-    <span class="py-st">"finder_probe"</span>, <span class="py-st">"contested_pure"</span>,
+                path: "\u2026/harnesses/tabula_v12/agency.py",
+                sym: "the menu header the model reads",
+                lines: `<span class="py-st">"OPTION MENU (SELECT by ID — put the IDs you choose, in "</span>
+<span class="py-st">"execution order, into \\"plan\\"; the geometry is pre-filled "</span>
+<span class="py-st">"for you). ... its geometry is PRE-VALIDATED — so you never "</span>
+<span class="py-st">"reconstruct any of it, and your picks are IDs from this "</span>
+<span class="py-st">"menu, never coordinates you compose."</span>`,
+              },
+            ],
+            write: [
+              {
+                path: "\u2026/harnesses/&lt;yours&gt;/weapon_plays.py",
+                sym: "MOVE DOCTRINE — one declared play",
+                lines: `<span class="py-fn">WeaponPlay</span>(
+    play_id=<span class="py-st">"PURE_TRAP"</span>,
+    weapon=<span class="py-st">"snap"</span>,
+    when=<span class="py-st">"always"</span>,          <span class="py-cm"># the resolver is the real gate</span>
+    hour=<span class="py-st">"super_early"</span>,     <span class="py-cm"># position in the list IS the hour</span>
+    targets=<span class="py-st">"contested_pure"</span>,   <span class="py-cm"># ← the stage-7 resolver</span>
+    min_targets=<span class="py-nu">1</span>,
+    combines_with=<span class="py-st">"smash_grab"</span>,  <span class="py-cm"># borrows that geometry</span>
+    why=(
+        <span class="py-st">"a pure we can see that a rival probe also watches "</span>
+        <span class="py-st">"is the one cell whose occupation is predictable — "</span>
+        <span class="py-st">"they will smash-and-grab it at hour one; snapping "</span>
+        <span class="py-st">"it refuses that landing and damages the hull, then "</span>
+        <span class="py-st">"a smash-grab lands on the cold pure at hour two and "</span>
+        <span class="py-st">"banks it — pick ONE grab on that cell, not two"</span>
+    ),
 )`,
+              },
+              {
+                path: "\u2026/harnesses/&lt;yours&gt;/ — the rendered menu line",
+                sym: "what the model actually sees",
+                lines: `<span class="py-ok">SNAP PLAYS (one cell, one hour — kills the eye on it, and</span>
+<span class="py-ok">catches a harvester that ARRIVES that hour)</span>
+  [SNAP1] PURE_TRAP — snap (14,22) at H1
+      denies ~430 to p2 · 2 rival eyes watch this pure
+      why: they will smash-and-grab it at hour one;
+           snapping it refuses that landing, then our
+           grab lands on the cold pure at hour two`,
               },
             ],
           },
@@ -1666,40 +2276,42 @@ TARGETS_CHOICES = (
           {
             act: "move",
             state: "no",
-            short: "Conditions + price",
-            title: "The board conditions must match, and the offer must explain itself",
-            say: `A play whose condition never holds is offered
-                  <span class="q">never</span>, and says nothing. A play that
-                  banks nothing prices at <span class="q">zero</span>, and is
+            short: "Price it",
+            title: "A denial that banks nothing must still rank against a chain",
+            say: `The menu ranks by what an option banks. A denial banks
+                  <span class="q">zero</span>, so it prices at zero and is
                   correctly ignored.`,
-            body: `<p>This is the stage that eats the most time, because it has
-                   two distinct failures wearing the same face.</p>
+            body: `<p>Two distinct failures wear the same face here, and
+                   together they eat more time than anything else on the
+                   ladder.</p>
                    <p><b>The condition never matches.</b> Your play declares a
                    trigger. If the board never satisfies it, the option is never
-                   built &mdash; silently. A play called
-                   <code>finder_probe</code> shipped dead this way: in the
-                   registry, borrowing working geometry, declaring a target mode
-                   that had never once run.</p>
-                   <p><b>The price is wrong.</b> The menu ranks by what an option
-                   banks. A denial play banks nothing, so next to a chain worth
-                   600 it scores zero and the model ignores it. The model is not
-                   being dim &mdash; it is reading the number you handed it.</p>`,
+                   built &mdash; silently.</p>
+                   <p><b>The price is wrong.</b> Next to a chain worth 600, a
+                   SNAP that banks nothing scores zero. The model is not being
+                   dim; it is reading the number you gave it. Price the denial
+                   by <em>what the rival loses</em> and the comparison becomes
+                   real.</p>
+                   <p>Two things carry that: the <b>yield annotation</b>, which
+                   is a number, and the <b>rationale</b>, which is the sentence
+                   arguing the trade. Bare geometry gives the model neither.</p>`,
             symptom: `<p>Rung 3 fails with &ldquo;weapon options carry geometry
                       but no detail/rationale&rdquo;. Or worse: rung 3 passes,
-                      the option appears, and the model never picks it.</p>
-                      <p>Diagnostic for the first: log every option the registry
-                      built, not just the ones offered. A play that never
-                      appears in that log has a predicate that never fires.</p>`,
-            fix: `<p>Validate the declared axes at build time and <em>raise</em>
-                  on an unlisted value &mdash; a silent fall-through to a default
-                  is how a dead play hides for a week.</p>
-                  <p>Then price denial by <b>what the rival loses</b> and say it
-                  in the menu line. &ldquo;Blinds the only eye on their pure seam
-                  for 8h&rdquo; is something a model can rank against a
-                  chain.</p>`,
+                      the option appears every night, and the model never once
+                      picks it.</p>
+                      <p>Diagnostic for the dead trigger: log every option the
+                      registry <em>built</em>, not just the ones offered. A play
+                      absent from that log has a predicate that never fires.</p>`,
+            fix: `<p>Validate the declared axes at build time and
+                  <em>raise</em> on an unlisted value &mdash; a silent
+                  fall-through to a default is how a dead play hides for a
+                  week.</p>
+                  <p>Then annotate denial yield in the same units as everything
+                  else on the menu, so the model is comparing like with
+                  like.</p>`,
             code: [
               {
-                path: "…/harnesses/tabula_v12/agency.py",
+                path: "\u2026/harnesses/tabula_v12/agency.py",
                 sym: "why bare geometry is not enough",
                 lines: `<span class="py-cm"># Fix 3.1 (OBS-34) — WHY this play exists and what it</span>
 <span class="py-cm"># trades. Seam patterns have carried this text since v10</span>
@@ -1710,14 +2322,47 @@ TARGETS_CHOICES = (
 <span class="py-ok">rationale: <span class="py-fn">str</span> = <span class="py-st">""</span></span>`,
               },
               {
-                path: "…/harnesses/&lt;armed fork&gt;/weapon_forge.py",
+                path: "\u2026/harnesses/&lt;armed fork&gt;/weapon_forge.py",
                 sym: "the dead-play lesson, in a comment",
                 lines: `<span class="py-cm"># TARGETS — where the aim points come from. An unlisted</span>
 <span class="py-cm"># value used to fall through to the pattern path in</span>
-<span class="py-cm"># SILENCE, which is how \`finder_probe\` shipped dead: the</span>
+<span class="py-cm"># SILENCE, which is how finder_probe shipped dead: the</span>
 <span class="py-cm"># play was offered every night, borrowed seam geometry,</span>
 <span class="py-cm"># and nobody could see that the target mode it declared</span>
-<span class="py-cm"># had never run. Validated in \`problems()\` now.</span>`,
+<span class="py-cm"># had never run. Validated in problems() now.</span>`,
+              },
+            ],
+            write: [
+              {
+                path: "\u2026/harnesses/&lt;yours&gt;/option_economics.py",
+                sym: "price a denial by what the RIVAL loses",
+                lines: `<span class="py-kw">def</span> <span class="py-fn">denial_yield</span>(option, agent_view) -&gt; <span class="py-fn">int</span>:
+    <span class="py-st">"""What the rival does NOT bank because of this play.
+
+    A denial banks nothing, so scored on our own take it is
+    zero and ranks below every chain on the menu. Scored on
+    theirs it is comparable, which is the only way the model
+    can weigh it at all.
+    """</span>
+    cell = option.payload.get(<span class="py-st">"target"</span>)
+    <span class="py-kw">return</span> <span class="py-fn">int</span>(<span class="py-fn">expected_take_for_rival</span>(agent_view, cell))
+
+<span class="py-cm"># ...and say it in the menu line, in the same units as</span>
+<span class="py-cm"># every other option, or the number is not comparable:</span>
+<span class="py-ok">detail = <span class="py-st">f"denies ~{denial} to {rival} · {n_eyes} eyes watch it"</span></span>`,
+              },
+              {
+                path: "\u2026/harnesses/&lt;yours&gt;/weapon_forge.py",
+                sym: "make a dead axis impossible, not unlikely",
+                lines: `<span class="py-kw">def</span> <span class="py-fn">problems</span>(self) -&gt; List[<span class="py-fn">str</span>]:
+    bad = []
+    <span class="py-kw">if</span> self.targets <span class="py-kw">not in</span> TARGETS_CHOICES:
+        <span class="py-hl">bad.append(<span class="py-st">f"{self.play_id}: unknown targets {self.targets!r}"</span>)</span>
+    <span class="py-kw">if</span> self.when <span class="py-kw">not in</span> WHEN_CHOICES:
+        bad.append(<span class="py-st">f"{self.play_id}: unknown when {self.when!r}"</span>)
+    <span class="py-kw">return</span> bad
+<span class="py-cm"># Called at import. A typo is a crash on startup, not a</span>
+<span class="py-cm"># play that is quietly never offered.</span>`,
               },
             ],
           },
@@ -1725,54 +2370,91 @@ TARGETS_CHOICES = (
           {
             act: "move",
             state: "no",
-            short: "The packager",
-            title: "The choice needs compiling into a legal order",
+            short: "Execute it",
+            title: "The choice must compile into legal wire moves",
             say: `Even a perfect selection dies here. There is
-                  <span class="q">no entry in the dispatch table</span>.`,
-            body: `<p>The model returns an option id. The packager turns that
-                   into the wire moves the engine executes, via a dispatch table
-                   keyed on the option's <code>kind</code>. There is no weapon
-                   entry, so a weapon option would compile to nothing.</p>
-                   <p>Behind that, the sanitiser gets a last look and knows
-                   nothing about weapon verbs either.</p>
-                   <p>The wire shape itself is mercifully simple &mdash; a dict
-                   with a verb and, for the aimed weapons, a list of cells. Chaff
-                   takes no target at all, because it jams the hour rather than a
-                   place.</p>`,
+                  <span class="q">no entry in the dispatch table</span>, so the
+                  option compiles to nothing at all.`,
+            body: `<p>The model returned IDs. <code>resolve_plan()</code> maps
+                   them back to <code>Option</code> objects, and
+                   <code>pack_recipe()</code> walks a dispatch table keyed on
+                   each option's <code>kind</code> to emit wire moves. No weapon
+                   entry means no moves.</p>
+                   <p>The packager is not a dumb expander. It densifies sparse
+                   paths into Manhattan steps, reorders for probe-support
+                   legality, and &mdash; the part that matters for weapons
+                   &mdash; can <b>pad with <code>wait</code></b> so a launch
+                   lands on the hour it was designed for. Position in the move
+                   list <em>is</em> the hour.</p>
+                   <p>The wire shape itself is simple: a verb, and for the aimed
+                   weapons a list of cells. Chaff takes no target, because it
+                   jams an hour rather than a place.</p>`,
             symptom: `<p>Rung 2 fails with &ldquo;the packager/sanitizer would
                       strip it&rdquo;.</p>
-                      <p>In a live run the symptom is a night where the model's
-                      rationale talks confidently about an EMP and the execution
-                      log shows four ordinary moves.</p>`,
-            fix: `<p>Add the <code>_DISPATCH</code> entry and the builder. Copy
-                  the wire shape from <code>heuristic_agent.py</code>, which has
-                  weapons on and fires both &mdash; that is the reference for
-                  what legal looks like.</p>
-                  <p>Remember the slot cost: a launch <b>consumes the hour</b>,
-                  exactly like a drop or a step. Position in the list is the
-                  hour.</p>`,
+                      <p>Live, the symptom is a night where the model's
+                      rationale talks confidently about a SNAP and the execution
+                      log shows four ordinary moves.</p>
+                      <p>One thing that will <em>not</em> save you: the
+                      sanitiser passes unknown verbs straight through on the
+                      grounds that the engine ignores anything invalid. So a
+                      malformed launch fails silently at the engine rather than
+                      loudly in your harness.</p>`,
+            fix: `<p>Add the dispatch entry and the packer. Copy the wire shape
+                  from <code>heuristic_agent.py</code>, which has weapons on and
+                  fires both.</p>
+                  <p>Refuse to fire late rather than firing at the wrong hour
+                  &mdash; a launch that slips past its designed beat hits an
+                  hour nobody was using, which is worse than not firing.</p>`,
             code: [
               {
-                path: "…/harnesses/tabula_v12/packager.py",
+                path: "\u2026/harnesses/tabula_v12/packager.py",
                 sym: "_DISPATCH :851",
                 lines: `_DISPATCH = {
-    <span class="py-st">"seam"</span>: _pack_seam,
-    <span class="py-st">"hotdrop"</span>: _pack_hotdrop,
-    <span class="py-st">"grab"</span>: _pack_chain,
-    <span class="py-st">"blue_grab"</span>: _pack_chain,
-    <span class="py-st">"chain"</span>: _pack_chain,
-    <span class="py-st">"probe"</span>: _pack_probe,
-    <span class="py-st">"supersede"</span>: _pack_supersede,
-    <span class="py-st">"frontier"</span>: _pack_frontier,
-<span class="py-hl">    <span class="py-cm"># ← no weapon entry. This is the whole of stage 9.</span></span>
+    <span class="py-st">"seam"</span>: _pack_seam,       <span class="py-st">"hotdrop"</span>: _pack_hotdrop,
+    <span class="py-st">"grab"</span>: _pack_chain,      <span class="py-st">"blue_grab"</span>: _pack_chain,
+    <span class="py-st">"chain"</span>: _pack_chain,     <span class="py-st">"probe"</span>: _pack_probe,
+    <span class="py-st">"supersede"</span>: _pack_supersede, <span class="py-st">"frontier"</span>: _pack_frontier,
+<span class="py-hl"><span class="py-cm"># ← no weapon entry. This is the whole of stage 10.</span></span>
 }`,
               },
               {
                 path: "sea_of_colours/agent/heuristic_agent.py",
-                sym: "what legal looks like",
+                sym: ":2070 — what legal looks like",
                 lines: `<span class="py-ok">moves.append({<span class="py-st">"a"</span>: <span class="py-st">"emp_launch"</span>, <span class="py-st">"at"</span>: targets})</span>
 <span class="py-cm"># ...and chaff, which aims at nothing at all:</span>
 <span class="py-ok">moves.insert(idx, {<span class="py-st">"a"</span>: <span class="py-st">"chaff_flare"</span>})</span>`,
+              },
+            ],
+            write: [
+              {
+                path: "\u2026/harnesses/&lt;yours&gt;/packager.py",
+                sym: "_pack_weapon() — hour is position",
+                lines: `<span class="py-kw">def</span> <span class="py-fn">_pack_weapon</span>(pk, payload) -&gt; <span class="py-kw">None</span>:
+    <span class="py-st">"""Position in pk.moves IS the hour."""</span>
+    <span class="py-kw">if</span> <span class="py-fn">int</span>(payload.get(<span class="py-st">"stock"</span>) <span class="py-kw">or</span> <span class="py-nu">0</span>) &lt;= <span class="py-nu">0</span>:
+        pk.log.append(<span class="py-st">"cut: none of that weapon in the rack"</span>)
+        <span class="py-kw">return</span>
+    verb = _WIRE_VERB[payload[<span class="py-st">"weapon"</span>]]
+    want = <span class="py-fn">int</span>(payload.get(<span class="py-st">"at_hour"</span>) <span class="py-kw">or</span> <span class="py-nu">1</span>)
+    <span class="py-hl"><span class="py-kw">if</span> <span class="py-fn">len</span>(pk.moves) + <span class="py-nu">1</span> &gt; want:          <span class="py-cm"># refuse, don't slip</span></span>
+        pk.log.append(<span class="py-st">f"cut: wanted H{want}, firing late hits "</span>
+                      <span class="py-st">"an hour nobody was using"</span>)
+        <span class="py-kw">return</span>
+    <span class="py-kw">while</span> <span class="py-fn">len</span>(pk.moves) + <span class="py-nu">1</span> &lt; want:      <span class="py-cm"># pad onto the beat</span>
+        pk.moves.append({<span class="py-st">"a"</span>: <span class="py-st">"wait"</span>})
+    <span class="py-kw">if</span> payload.get(<span class="py-st">"aims_at_cells"</span>):
+        pk.moves.append({<span class="py-st">"a"</span>: verb, <span class="py-st">"at"</span>: payload[<span class="py-st">"target"</span>]})
+    <span class="py-kw">else</span>:
+        pk.moves.append({<span class="py-st">"a"</span>: verb})   <span class="py-cm"># chaff aims at nothing</span>`,
+              },
+              {
+                path: "\u2026/harnesses/&lt;yours&gt;/packager.py",
+                sym: "register it — one line",
+                lines: `<span class="py-ok">_DISPATCH.update(weapon_forge.<span class="py-fn">packers</span>())</span>
+<span class="py-cm"># packers() returns {kind: _pack_weapon} for every play</span>
+<span class="py-cm"># declared. Careful: a dict update SILENTLY replaces an</span>
+<span class="py-cm"># existing packer, so declaring a generic EMP play can</span>
+<span class="py-cm"># overwrite a hand-written one that was doing more.</span>`,
               },
             ],
           },
@@ -1803,27 +2485,40 @@ TARGETS_CHOICES = (
                       worked&rdquo; into its journal anyway. <b>Right by
                       luck</b>, and the guess is what gets carried forward.</p>`,
             fix: `<p>Nothing, if you use the shipped tags. If you add a weapon,
-                  assert that the frame tag you read and the verb you send are
-                  the same string &mdash; in a test, not in a comment.</p>`,
+                  pin the equality in a test rather than trusting a comment
+                  &mdash; the comment was wrong for a year.</p>`,
             code: [
               {
-                path: "…/harnesses/tabula_v12/last_night.py",
+                path: "\u2026/harnesses/tabula_v12/last_night.py",
                 sym: "_OWN_ACTION_TAGS — already correct",
                 lines: `_OWN_ACTION_TAGS = {
     <span class="py-st">"drop"</span>, <span class="py-st">"step"</span>, <span class="py-st">"pickup"</span>, <span class="py-st">"probe"</span>,
-    <span class="py-ok">    <span class="py-st">"emp_launch"</span>, <span class="py-st">"chaff_flare"</span>, <span class="py-st">"snap_launch"</span>,</span>
+    <span class="py-ok"><span class="py-st">"emp_launch"</span>, <span class="py-st">"chaff_flare"</span>, <span class="py-st">"snap_launch"</span>,</span>
     <span class="py-cm"># failure outcomes on your OWN units — learning signal</span>
     <span class="py-st">"waste"</span>, <span class="py-st">"empd"</span>, <span class="py-st">"damaged"</span>, <span class="py-st">"chaffed"</span>,
 }`,
               },
               {
-                path: "…/harnesses/tabula_v12/last_night.py",
+                path: "\u2026/harnesses/tabula_v12/last_night.py",
                 sym: "the bug this replaced",
                 lines: `<span class="py-cm"># v1.48: this said "snap" and carried a comment asserting</span>
 <span class="py-cm"># the frame tag differed from the verb. It does not, and</span>
 <span class="py-cm"># the wrong token dropped every SNAP a seat ever fired out</span>
 <span class="py-cm"># of its own EXECUTION LOG. The hour simply went missing,</span>
 <span class="py-cm"># so a seat that fired one had no evidence it had.</span>`,
+              },
+            ],
+            write: [
+              {
+                path: "\u2026/harnesses/&lt;yours&gt;/tests/test_fork.py",
+                sym: "pin it, do not comment it",
+                lines: `<span class="py-kw">def</span> <span class="py-fn">test_every_wire_verb_is_a_tag_we_read</span>():
+    <span class="py-st">"""The verb we send and the frame tag we read are two
+    separate strings that merely look alike. A comment
+    claimed they differed for a year; assert instead.
+    """</span>
+    <span class="py-kw">for</span> verb <span class="py-kw">in</span> _WIRE_VERB.values():
+        <span class="py-hl"><span class="py-kw">assert</span> verb <span class="py-kw">in</span> last_night._OWN_ACTION_TAGS, verb</span>`,
               },
             ],
           },
@@ -1879,7 +2574,18 @@ TARGETS_CHOICES = (
         const elSymptom = document.getElementById("wp-symptom");
         const elFix = document.getElementById("wp-fix");
         const elCode = document.getElementById("wp-code");
+        const elWrite = document.getElementById("wp-write");
         const elStatus = document.getElementById("wp-status");
+
+        const renderCode = (blocks) =>
+          (blocks || [])
+            .map(
+              (c) =>
+                `<div class="wp-src"><span class="path">${c.path}</span>` +
+                `<span class="sym">${c.sym}</span></div>` +
+                `<div class="gd-term"><pre>${c.lines}</pre></div>`,
+            )
+            .join("");
 
         let idx = 0;
 
@@ -1907,14 +2613,8 @@ TARGETS_CHOICES = (
           elBody.innerHTML = s.body;
           elSymptom.innerHTML = s.symptom;
           elFix.innerHTML = s.fix;
-          elCode.innerHTML = s.code
-            .map(
-              (c) =>
-                `<div class="wp-src"><span class="path">${c.path}</span>` +
-                `<span class="sym">${c.sym}</span></div>` +
-                `<div class="gd-term"><pre>${c.lines}</pre></div>`,
-            )
-            .join("");
+          elCode.innerHTML = renderCode(s.code);
+          elWrite.innerHTML = renderCode(s.write);
           elStatus.textContent = `# ${s.short.toLowerCase()}`;
           // Keep the URL shareable — a team leader can link one stage.
           if (history.replaceState) {
